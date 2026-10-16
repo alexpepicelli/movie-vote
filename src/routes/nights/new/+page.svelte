@@ -1,0 +1,130 @@
+<script lang="ts">
+	import { enhance } from '$app/forms';
+	import { resolve } from '$app/paths';
+	import type { PageProps } from './$types';
+
+	let { data, form }: PageProps = $props();
+	let pending = $state(false);
+
+	const v = (name: string, fallback = '') => String(form?.values?.[name] ?? fallback);
+	const checked = (name: string, fallback: boolean) =>
+		form?.values ? form.values[name] === 'on' : fallback;
+</script>
+
+<svelte:head><title>New movie night · Movie Vote</title></svelte:head>
+
+<div class="mx-auto max-w-lg">
+	<h1 class="font-display text-4xl tracking-wide">Start a movie night</h1>
+
+	{#if data.open}
+		<p class="mt-4 rounded-xl border border-line bg-panel p-4 text-sm">
+			<a href={resolve('/nights/[id]', { id: data.open.id })} class="text-marquee underline"
+				>{data.open.title}</a
+			> is still open. Close or cancel it before starting another.
+		</p>
+	{:else}
+		<p class="mt-2 text-sm text-muted">
+			Nominations open as soon as you create it. Deadlines are optional: without them, you move
+			things along yourself from the night's page.
+		</p>
+
+		<form
+			method="POST"
+			class="mt-6 space-y-5"
+			use:enhance={() => {
+				pending = true;
+				return async ({ update }) => {
+					await update({ reset: false });
+					pending = false;
+				};
+			}}
+		>
+			<label class="block">
+				<span class="text-sm text-muted">Title</span>
+				<input
+					name="title"
+					required
+					maxlength="60"
+					value={v('title', 'Movie night')}
+					class="field"
+				/>
+			</label>
+
+			<label class="block">
+				<span class="text-sm text-muted">When are you watching? (optional)</span>
+				<input name="scheduledFor" type="datetime-local" value={v('scheduledFor')} class="field" />
+			</label>
+
+			<div class="grid gap-4 sm:grid-cols-2">
+				<label class="block">
+					<span class="text-sm text-muted">Nominations close (optional)</span>
+					<input
+						name="nominateUntil"
+						type="datetime-local"
+						value={v('nominateUntil')}
+						class="field"
+					/>
+				</label>
+				<label class="block">
+					<span class="text-sm text-muted">Voting closes (optional)</span>
+					<input name="voteUntil" type="datetime-local" value={v('voteUntil')} class="field" />
+				</label>
+			</div>
+
+			<div class="grid gap-4 sm:grid-cols-2">
+				<label class="block">
+					<span class="text-sm text-muted">Nominations per person</span>
+					<input
+						name="maxNominations"
+						type="number"
+						min="1"
+						max="5"
+						required
+						value={v('maxNominations', '2')}
+						class="field"
+					/>
+				</label>
+				<label class="block">
+					<span class="text-sm text-muted">Votes per person</span>
+					<input
+						name="maxVotes"
+						type="number"
+						min="1"
+						max="10"
+						required
+						value={v('maxVotes', '3')}
+						class="field"
+					/>
+				</label>
+			</div>
+
+			<fieldset class="space-y-3 rounded-xl border border-line p-4">
+				<legend class="px-1 text-sm text-muted">Rules</legend>
+				<label class="flex items-start gap-3">
+					<input
+						type="checkbox"
+						name="resultsHidden"
+						checked={checked('resultsHidden', true)}
+						class="mt-1 accent-marquee"
+					/>
+					<span>
+						<span class="block text-sm">Hide vote counts until voting closes</span>
+						<span class="block text-xs text-muted">Stops people piling onto the leader.</span>
+					</span>
+				</label>
+				<label class="flex items-start gap-3">
+					<input
+						type="checkbox"
+						name="selfVoteAllowed"
+						checked={checked('selfVoteAllowed', false)}
+						class="mt-1 accent-marquee"
+					/>
+					<span class="text-sm">Let people vote for their own nominations</span>
+				</label>
+			</fieldset>
+
+			{#if form?.error}<p class="text-sm text-curtain" role="alert">{form.error}</p>{/if}
+			<button disabled={pending} class="btn">{pending ? 'Creating…' : 'Open nominations'}</button>
+		</form>
+	{/if}
+</div>

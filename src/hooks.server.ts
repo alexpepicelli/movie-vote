@@ -9,16 +9,18 @@ import {
 } from '#lib/server/auth/sessions.js';
 import { setSessionCookie } from '#lib/server/auth/cookie.js';
 import { radarr } from '#lib/server/integrations.js';
-import { startStatusPoller } from '#lib/server/poller.js';
+import { startNightScheduler, startStatusPoller } from '#lib/server/poller.js';
 
 // Survives dev-server reloads so we don't stack up pollers.
-const globals = globalThis as { __mvStopPoller?: () => void };
+const globals = globalThis as { __mvStopPoller?: () => void; __mvStopScheduler?: () => void };
 
 export const init: ServerInit = () => {
 	runMigrations(db);
 	deleteExpiredSessions(db);
 	globals.__mvStopPoller?.();
 	globals.__mvStopPoller = startStatusPoller(db, radarr);
+	globals.__mvStopScheduler?.();
+	globals.__mvStopScheduler = startNightScheduler(db);
 };
 
 const PUBLIC_PATHS = ['/login', '/healthz'];

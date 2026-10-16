@@ -1,3 +1,5 @@
 import type { LayoutServerLoad } from './$types';
 
-export const load: LayoutServerLoad = ({ locals }) => ({ user: locals.user });
+const serverTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+export const load: LayoutServerLoad = ({ locals }) => ({ user: locals.user, serverTimeZone });

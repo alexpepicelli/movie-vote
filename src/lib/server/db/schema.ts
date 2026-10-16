@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm';
 import { index, integer, primaryKey, sqliteTable, text, unique } from 'drizzle-orm/sqlite-core';
+import type { TallyResult } from '../tally';
 
 const id = () =>
 	text('id')
@@ -101,6 +102,10 @@ export const nights = sqliteTable('nights', {
 	resultsHidden: integer('results_hidden', { mode: 'boolean' }).notNull().default(true),
 	winnerTmdbId: integer('winner_tmdb_id').references(() => movies.tmdbId),
 	tiebreakSeed: text('tiebreak_seed'),
+	/** Snapshot of the final ranking, taken when voting closes. */
+	results: text('results', { mode: 'json' }).$type<TallyResult>(),
+	votingStartedAt: integer('voting_started_at', { mode: 'timestamp' }),
+	closedAt: integer('closed_at', { mode: 'timestamp' }),
 	createdBy: text('created_by')
 		.notNull()
 		.references(() => users.id),
