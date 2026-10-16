@@ -2,7 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { and, asc, avg, count, desc, eq, gte, inArray, lte } from 'drizzle-orm';
 import type { Db } from './db/client';
 import { movies, nights, nominations, ratings, users, votes, watchlist } from './db/schema';
-import { tally } from './tally';
+import { scoreOf, tally } from './tally';
 import { mostWanted, watchedMovieIds } from './watchlist';
 
 export type Night = typeof nights.$inferSelect;
@@ -147,7 +147,19 @@ export function withdraw(
 	});
 }
 
-export function castVote(db: Db, nightId: string, userId: string, nominationId: string): Result {
+export type VoteValue = 1 | -1;
+
+/**
+ * Upvotes (+1) or downvotes (-1) a nomination. Both use one of the night's votes; voting the
+ * other way on a film you've already voted on just flips it.
+ */
+export function castVote(
+	db: Db,
+	nightId: string,
+	userId: string,
+	nominationId: string,
+	value: VoteValue = 1
+): Result {
 	return db.transaction((tx) => {
 		const night = getNight(tx, nightId);
 		if (night?.status !== 'voting') return fail('Voting is closed.');
@@ -162,15 +174,29 @@ export function castVote(db: Db, nightId: string, userId: string, nominationId: 
 			return fail("You can't vote for your own nomination.");
 
 		const mine = tx
-			.select({ nominationId: votes.nominationId })
+			.select({ nominationId: votes.nominationId, value: votes.value })
 			.from(votes)
 			.where(and(eq(votes.nightId, nightId), eq(votes.userId, userId)))
 			.all();
-		if (mine.some((v) => v.nominationId === nominationId)) return OK;
+		const existing = mine.find((v) => v.nominationId === nominationId);
+		if (existing) {
+			if (existing.value !== value)
+				tx.update(votes)
+					.set({ value })
+					.where(
+						and(
+							eq(votes.nightId, nightId),
+							eq(votes.userId, userId),
+							eq(votes.nominationId, nominationId)
+						)
+					)
+					.run();
+			return OK;
+		}
 		if (mine.length >= night.maxVotes)
 			return fail(`You've used all ${night.maxVotes} votes. Take one back to move it.`);
 
-		tx.insert(votes).values({ nightId, userId, nominationId }).run();
+		tx.insert(votes).values({ nightId, userId, nominationId, value }).run();
 		return OK;
 	});
 }
@@ -218,7 +244,7 @@ export function closeVoting(
 			.where(eq(nominations.nightId, nightId))
 			.all();
 		const cast = tx
-			.select({ nominationId: votes.nominationId })
+			.select({ nominationId: votes.nominationId, value: votes.value })
 			.from(votes)
 			.where(eq(votes.nightId, nightId))
 			.all();
@@ -308,35 +334,48 @@ export function nightView(db: Db, night: Night, userId: string) {
 		.all();
 
 	const allVotes = db
-		.select({ userId: votes.userId, nominationId: votes.nominationId })
+		.select({ userId: votes.userId, nominationId: votes.nominationId, value: votes.value })
 		.from(votes)
 		.where(eq(votes.nightId, night.id))
 		.all();
 
 	const finished = night.status === 'closed' || night.status === 'watched';
 	const showCounts = finished || (night.status === 'voting' && !night.resultsHidden);
-	const voteCounts = new Map<string, number>();
-	for (const v of allVotes)
-		voteCounts.set(v.nominationId, (voteCounts.get(v.nominationId) ?? 0) + 1);
+	const live = new Map<string, { score: number; ups: number; downs: number }>();
+	for (const v of allVotes) {
+		const t = live.get(v.nominationId) ?? { score: 0, ups: 0, downs: 0 };
+		t.score += v.value;
+		if (v.value > 0) t.ups++;
+		else t.downs++;
+		live.set(v.nominationId, t);
+	}
 
 	const saves = saveCounts(
 		db,
 		noms.map((n) => n.movie.tmdbId)
 	);
-	const myVotes = new Set(allVotes.filter((v) => v.userId === userId).map((v) => v.nominationId));
+	const myVotes = new Map(
+		allVotes.filter((v) => v.userId === userId).map((v) => [v.nominationId, v.value as VoteValue])
+	);
 	const memberCount = db.select({ n: count() }).from(users).get()!.n;
 
 	const ranking = night.results?.ranking ?? [];
 	const rankOf = new Map(ranking.map((r) => [r.nominationId, r]));
 
-	const entries = noms.map((n) => ({
-		...n,
-		mine: n.userId === userId,
-		votedByMe: myVotes.has(n.id),
-		votes: showCounts ? (rankOf.get(n.id)?.votes ?? voteCounts.get(n.id) ?? 0) : null,
-		saves: rankOf.get(n.id)?.saves ?? saves.get(n.movie.tmdbId) ?? 0,
-		rank: rankOf.get(n.id)?.rank ?? null
-	}));
+	const entries = noms.map((n) => {
+		const ranked = rankOf.get(n.id);
+		const counts = ranked ? scoreOf(ranked) : (live.get(n.id) ?? { score: 0, ups: 0, downs: 0 });
+		return {
+			...n,
+			mine: n.userId === userId,
+			/** This viewer's vote on the film: 1, -1 or null. */
+			myVote: myVotes.get(n.id) ?? null,
+			votedByMe: myVotes.has(n.id),
+			votes: showCounts ? counts : null,
+			saves: ranked?.saves ?? saves.get(n.movie.tmdbId) ?? 0,
+			rank: ranked?.rank ?? null
+		};
+	});
 	if (finished) entries.sort((a, b) => (a.rank ?? 999) - (b.rank ?? 999));
 
 	return {

@@ -156,6 +156,48 @@ describe('voting', () => {
 		expect(nightView(db, getNight(db, night.id)!, ben.id).myVoteCount).toBe(1);
 	});
 
+	it('flips a vote between up and down without using another vote', () => {
+		const { db, ben, night } = voting();
+		const two = nominationId(db, 2);
+		expect(castVote(db, night.id, ben.id, two, -1)).toEqual({ ok: true });
+		expect(castVote(db, night.id, ben.id, two, 1)).toEqual({ ok: true });
+
+		const view = nightView(db, getNight(db, night.id)!, ben.id);
+		expect(view.myVoteCount).toBe(1);
+		expect(view.entries.find((e) => e.id === two)?.myVote).toBe(1);
+	});
+
+	it('counts downvotes against the same budget as upvotes', () => {
+		const { db, ben, night } = voting();
+		expect(castVote(db, night.id, ben.id, nominationId(db, 2), -1)).toEqual({ ok: true });
+		expect(castVote(db, night.id, ben.id, nominationId(db, 3), 1)).toEqual({ ok: true });
+		expect(castVote(db, night.id, ben.id, nominationId(db, 1), -1)).toMatchObject({
+			ok: false,
+			error: /own nomination/
+		});
+		// One down and one up use both of this night's two votes.
+		expect(nightView(db, getNight(db, night.id)!, ben.id).myVoteCount).toBe(2);
+		removeVote(db, night.id, ben.id, nominationId(db, 2));
+		expect(nightView(db, getNight(db, night.id)!, ben.id).myVoteCount).toBe(1);
+	});
+
+	it('ranks by score, so downvotes can sink a film', () => {
+		const { db, owner, ben, cat, night } = voting(); // ben picked 1, cat 2, owner 3
+		castVote(db, night.id, cat.id, nominationId(db, 3));
+		castVote(db, night.id, ben.id, nominationId(db, 3));
+		castVote(db, night.id, cat.id, nominationId(db, 1));
+		castVote(db, night.id, owner.id, nominationId(db, 2));
+		castVote(db, night.id, ben.id, nominationId(db, 2), -1);
+
+		closeVoting(db, night.id, now, 'seed');
+		const view = nightView(db, getNight(db, night.id)!, ben.id);
+		expect(view.entries.map((e) => [e.movie.tmdbId, e.votes])).toEqual([
+			[3, { score: 2, ups: 2, downs: 0 }],
+			[1, { score: 1, ups: 1, downs: 0 }],
+			[2, { score: 0, ups: 1, downs: 1 }]
+		]);
+	});
+
 	it('hides counts during voting when results are hidden', () => {
 		const { db, ben, cat, night } = voting();
 		castVote(db, night.id, ben.id, nominationId(db, 2));
@@ -176,7 +218,7 @@ describe('voting', () => {
 		expect(closed).toMatchObject({ status: 'closed', winnerTmdbId: 2, tiebreakSeed: 'seed' });
 
 		const view = nightView(db, closed, ben.id);
-		expect(view.entries.map((e) => [e.movie.tmdbId, e.votes, e.rank])).toEqual([
+		expect(view.entries.map((e) => [e.movie.tmdbId, e.votes?.score, e.rank])).toEqual([
 			[2, 2, 1],
 			[3, 1, 2],
 			[1, 0, 3]

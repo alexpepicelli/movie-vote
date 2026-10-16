@@ -75,6 +75,35 @@ describe('tally', () => {
 		expect(r.ranking.at(-1)?.tmdbId).toBe(3);
 	});
 
+	it('ranks by score, ups minus downs', () => {
+		const r = tally({
+			nominations: noms(1, 2),
+			votes: [
+				...votesFor({ 1: 3, 2: 2 }),
+				{ nominationId: 'n1', value: -1 },
+				{ nominationId: 'n1', value: -1 }
+			],
+			saves: new Map(),
+			seed: 's'
+		});
+		expect(r.winnerTmdbId).toBe(2);
+		expect(r.ranking.map((e) => [e.tmdbId, e.score, e.ups, e.downs])).toEqual([
+			[2, 2, 2, 0],
+			[1, 1, 3, 2]
+		]);
+	});
+
+	it('breaks a score tie on upvotes before watchlist saves', () => {
+		const r = tally({
+			nominations: noms(1, 2),
+			votes: [...votesFor({ 1: 1, 2: 2 }), { nominationId: 'n2', value: -1 }],
+			saves: new Map([[1, 9]]),
+			seed: 's'
+		});
+		expect(r.winnerTmdbId).toBe(2);
+		expect(r.tieBreak).toEqual({ by: 'ups', tiedWith: [1] });
+	});
+
 	it('handles nights with no nominations or no votes', () => {
 		expect(tally({ nominations: [], votes: [], saves: new Map(), seed: 's' })).toEqual({
 			ranking: [],

@@ -12,6 +12,7 @@
 	import StatusBadge from '#lib/components/StatusBadge.svelte';
 	import Stepper from '#lib/components/Stepper.svelte';
 	import Toast from '#lib/components/Toast.svelte';
+	import VoteControl from '#lib/components/VoteControl.svelte';
 	import WinnerReveal from '#lib/components/WinnerReveal.svelte';
 	import { cardMovie, displayStatus, type StatusInput } from '#lib/status.js';
 	import type { PageProps } from './$types';
@@ -61,22 +62,25 @@
 	// Voting: a filter, and an undo toast after taking a vote back.
 	let filter = $state<'all' | 'mine'>('all');
 	const ballot = $derived(
-		filter === 'mine' ? data.entries.filter((e) => e.votedByMe) : data.entries
+		filter === 'mine' ? data.entries.filter((e) => e.myVote !== null) : data.entries
 	);
-	let undo = $state<{ id: string; title: string } | null>(null);
+	let undo = $state<{ id: string; title: string; value: number } | null>(null);
 	let undoTimer: ReturnType<typeof setTimeout> | undefined;
 	let undoForm = $state<HTMLFormElement>();
-	function offerUndo(id: string, title: string) {
+	function offerUndo(id: string, title: string, value: number) {
 		clearTimeout(undoTimer);
-		undo = { id, title };
+		undo = { id, title, value };
 		undoTimer = setTimeout(() => (undo = null), 5000);
 	}
 	// use:enhance keeps the handler from the first render, so read the entry when it's submitted.
 	const voteSubmit =
-		(current: () => { id: string; votedByMe: boolean; movie: { title: string } }): SubmitFunction =>
+		(
+			current: () => { id: string; myVote: number | null; movie: { title: string } }
+		): SubmitFunction =>
 		(input) => {
-			const { id, votedByMe, movie } = current();
-			return keep(id, votedByMe ? () => offerUndo(id, movie.title) : undefined)(input);
+			const { id, myVote, movie } = current();
+			const clearing = input.action.search.includes('unvote') && myVote !== null;
+			return keep(id, clearing ? () => offerUndo(id, movie.title, myVote) : undefined)(input);
 		};
 	function undoVote() {
 		undoForm?.requestSubmit();
@@ -98,11 +102,13 @@
 		const others = new Intl.ListFormat('en', { type: 'conjunction' }).format(
 			tieBreak.tiedWith.map(titleOf)
 		);
-		return tieBreak.by === 'saves'
-			? `Tied on votes with ${others}. Won by being on more watchlists.`
-			: `Tied on votes and watchlists with ${others}. Won the random draw (seed ${tieBreak.seed}).`;
+		if (tieBreak.by === 'ups') return `Tied on score with ${others}. Won by having more upvotes.`;
+		if (tieBreak.by === 'saves')
+			return `Tied on score and upvotes with ${others}. Won by being on more watchlists.`;
+		return `Tied on score, upvotes and watchlists with ${others}. Won the random draw (seed ${tieBreak.seed}).`;
 	});
-	const maxVotes = $derived(Math.max(1, ...data.entries.map((e) => e.votes ?? 0)));
+	const topScore = $derived(Math.max(1, ...data.entries.map((e) => e.votes?.score ?? 0)));
+	const signed = (n: number) => (n > 0 ? `+${n}` : String(n));
 
 	const runtime = (mins: number | null) =>
 		mins ? `${Math.floor(mins / 60)}h ${String(mins % 60).padStart(2, '0')}m` : null;
@@ -171,7 +177,8 @@
 			</div>
 			{#if deadline}
 				<p class="-mt-2 text-xs text-muted">
-					{night.status === 'voting' ? 'Voting' : 'Nominations'} close <LocalTime date={deadline} />
+					{night.status === 'voting' ? 'Voting closes' : 'Nominations close'}
+					<LocalTime date={deadline} />
 				</p>
 			{/if}
 
@@ -392,7 +399,8 @@
 			<section class="flex flex-col gap-4">
 				<SectionHeader title="Ballot" />
 				<p class="-mt-2 text-sm text-muted">
-					Vote for up to {night.maxVotes}. You can change your mind until voting closes.
+					You have {night.maxVotes} votes: give a film ▲ if you want it, ▼ if you don't. Highest score
+					wins, and you can change your mind until voting closes.
 					{#if night.resultsHidden}Counts stay hidden until the reveal.{/if}
 				</p>
 				<SegmentedControl
@@ -416,9 +424,12 @@
 						{#each ballot as entry, i (entry.id)}
 							{@const own = entry.mine && !night.selfVoteAllowed}
 							<li
-								class="flex animate-rise gap-3 rounded-2xl p-3 transition sm:gap-4 sm:p-4 {entry.votedByMe
+								class="flex animate-rise gap-3 rounded-2xl p-3 transition sm:gap-4 sm:p-4 {entry.myVote ===
+								1
 									? 'bg-raised ring-[1.5px] ring-accent'
-									: 'bg-panel ring-1 ring-line'}"
+									: entry.myVote === -1
+										? 'bg-raised ring-[1.5px] ring-sunset/70'
+										: 'bg-panel ring-1 ring-line'}"
 								style="animation-delay: {i * 40}ms"
 							>
 								<a
@@ -437,40 +448,24 @@
 									<div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
 										<StatusBadge status={entry.movie} />
 										<span>{entry.mine ? 'Your pick' : `Picked by ${entry.nominatedBy}`}</span>
-										{#if entry.votes !== null}
-											<span class="font-mono font-bold text-ink">{plural(entry.votes, 'vote')}</span
+										{#if entry.votes !== null && (entry.votes.ups || entry.votes.downs)}
+											<span class="font-mono"
+												><span class="text-accent">▲{entry.votes.ups}</span>
+												<span class="text-sunset">▼{entry.votes.downs}</span></span
 											>
 										{/if}
 									</div>
 								</div>
-								<form
-									method="POST"
-									action={entry.votedByMe ? '?/unvote' : '?/vote'}
-									class="self-center"
-									use:enhance={voteSubmit(() => entry)}
-								>
-									<input type="hidden" name="nominationId" value={entry.id} />
-									<button
-										aria-pressed={entry.votedByMe}
-										aria-label={own
-											? 'You picked this, so you can’t vote for it'
-											: `${entry.votedByMe ? 'Remove vote for' : 'Vote for'} ${entry.movie.title}`}
-										disabled={busy !== null || own || (!entry.votedByMe && votesLeft <= 0)}
-										class="flex min-h-11 min-w-20 items-center justify-center gap-1.5 rounded-full px-4 text-sm font-extrabold transition active:scale-95 disabled:cursor-default {entry.votedByMe
-											? 'bg-gradient-to-r from-[#ff8a4c] to-accent text-on-accent'
-											: own || votesLeft <= 0
-												? 'border border-line text-muted/60'
-												: 'border-[1.5px] border-muted/50 text-ink hover:border-accent'}"
-									>
-										{#if entry.votedByMe}
-											<Icon name="check" size={16} stroke={3} /> Voted
-										{:else if own}
-											Yours
-										{:else}
-											Vote
-										{/if}
-									</button>
-								</form>
+								<VoteControl
+									nominationId={entry.id}
+									title={entry.movie.title}
+									myVote={entry.myVote}
+									score={entry.votes?.score ?? null}
+									canVote={votesLeft > 0}
+									ownPick={own}
+									busy={busy !== null}
+									submit={voteSubmit(() => entry)}
+								/>
 							</li>
 						{/each}
 					</ul>
@@ -482,13 +477,14 @@
 
 				<form method="POST" action="?/vote" bind:this={undoForm} use:enhance={keep('undo')} hidden>
 					<input type="hidden" name="nominationId" value={undo?.id ?? ''} />
+					<input type="hidden" name="value" value={undo?.value === -1 ? 'down' : 'up'} />
 				</form>
 			</section>
 
 			<!-- Sticky vote bar on phones and tablets; the side panel covers desktop. -->
 			<div class="sticky bottom-20 z-10 flex flex-col gap-3 sm:bottom-4 lg:hidden">
 				{#if undo}
-					<Toast message="Vote for {undo.title} removed" action="Undo" onaction={undoVote} />
+					<Toast message="Vote on {undo.title} removed" action="Undo" onaction={undoVote} />
 				{/if}
 				<div
 					class="flex items-center gap-3 rounded-2xl border border-line bg-screen/95 px-4 py-3 backdrop-blur"
@@ -504,7 +500,7 @@
 			</div>
 			{#if undo}
 				<div class="fixed right-6 bottom-6 z-30 hidden w-96 lg:block">
-					<Toast message="Vote for {undo.title} removed" action="Undo" onaction={undoVote} />
+					<Toast message="Vote on {undo.title} removed" action="Undo" onaction={undoVote} />
 				</div>
 			{/if}
 		{:else if finished}
@@ -541,7 +537,8 @@
 							</h2>
 							<p class="mt-2 text-sm text-muted">{meta(winner.movie)}</p>
 							<p class="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted">
-								<span class="font-mono font-bold text-ink">{plural(winner.votes ?? 0, 'vote')}</span
+								<span class="font-mono font-bold text-ink"
+									>Score {signed(winner.votes?.score ?? 0)}</span
 								>
 								<span>picked by {winner.mine ? 'you' : winner.nominatedBy}</span>
 								<StatusBadge status={winner.movie} />
@@ -671,14 +668,20 @@
 													? 'font-extrabold'
 													: 'font-semibold text-ink/85'}">{entry.movie.title}</a
 											>
-											<span class="shrink-0 font-mono text-muted">{entry.votes}</span>
+											<span class="shrink-0 font-mono text-muted">
+												<span class="text-accent">▲{entry.votes?.ups ?? 0}</span>
+												<span class="text-sunset">▼{entry.votes?.downs ?? 0}</span>
+												<span class="ml-1 font-bold text-ink"
+													>{signed(entry.votes?.score ?? 0)}</span
+												>
+											</span>
 										</div>
 										<div class="mt-1.5 h-1.5 overflow-hidden rounded-full bg-raised">
 											<div
 												class="bar h-full rounded-full {i === 0
 													? 'bg-gradient-to-r from-[#ff8a4c] to-accent'
-													: 'bg-line'}"
-												style="width: {((entry.votes ?? 0) / maxVotes) *
+													: 'bg-muted/45'}"
+												style="width: {(Math.max(0, entry.votes?.score ?? 0) / topScore) *
 													100}%; animation-delay: {i * 80}ms"
 											></div>
 										</div>

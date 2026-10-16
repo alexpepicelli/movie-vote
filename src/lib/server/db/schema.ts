@@ -143,6 +143,8 @@ export const votes = sqliteTable(
 		nominationId: text('nomination_id')
 			.notNull()
 			.references(() => nominations.id, { onDelete: 'cascade' }),
+		/** +1 for an upvote, -1 for a downvote. Both use one of the night's votes. */
+		value: integer('value').notNull().default(1),
 		createdAt: createdAt()
 	},
 	(t) => [primaryKey({ columns: [t.nightId, t.userId, t.nominationId] })]

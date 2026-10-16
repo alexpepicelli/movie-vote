@@ -98,11 +98,15 @@ export const actions: Actions = {
 	withdraw: async ({ request, params, locals }) =>
 		respond(params.id, withdraw(db, params.id, await field(request, 'nominationId'), locals.user!)),
 
-	vote: async ({ request, params, locals }) =>
-		respond(
+	/** `value` is "down" for a downvote; anything else is an upvote. */
+	vote: async ({ request, params, locals }) => {
+		const form = await request.formData();
+		const value = form.get('value') === 'down' ? -1 : 1;
+		return respond(
 			params.id,
-			castVote(db, params.id, locals.user!.id, await field(request, 'nominationId'))
-		),
+			castVote(db, params.id, locals.user!.id, String(form.get('nominationId') ?? ''), value)
+		);
+	},
 	unvote: async ({ request, params, locals }) =>
 		respond(
 			params.id,
