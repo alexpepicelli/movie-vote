@@ -24,24 +24,20 @@ The SQLite database is created at `./data/votarr.db`, and migrations run automat
 
 [YAMS](https://yams.media) runs extra containers from `docker-compose.custom.yaml` in its install folder (`/opt/yams` below). Those containers join YAMS's network, so Votarr reaches Radarr and Seerr by name. GitHub Actions builds the image and publishes it to `ghcr.io/alexpepicelli/votarr` on every push, so there's nothing to clone or build on the server.
 
-1. **Add keys to YAMS's `.env`** (`/opt/yams/.env`):
-   ```bash
-   SEERR_API_KEY=...        # Seerr → Settings → General
-   RADARR_API_KEY=...       # Radarr → Settings → General
-   VOTARR_URL=https://votarr.example.com
-   ```
-2. **Add the service:** copy the `votarr:` block from [`deploy/yams/docker-compose.custom.yaml`](deploy/yams/docker-compose.custom.yaml) under `services:` in `/opt/yams/docker-compose.custom.yaml`. Check:
-   - the Seerr container name (`seerr` or `jellyseerr`: `docker ps`)
+1. **Add the service:** copy the `votarr:` block from [`deploy/yams/docker-compose.custom.yaml`](deploy/yams/docker-compose.custom.yaml) under `services:` in `/opt/yams/docker-compose.custom.yaml`, then fill in:
+   - `ORIGIN`: your public hostname, e.g. `https://votarr.example.com`
+   - `SEERR_API_KEY` and `RADARR_API_KEY` (each app → Settings → General)
+   - the Seerr container name if it isn't `seerr` (`docker ps`)
    - `OWNER_SEERR_USER_ID` (Seerr → Users → your user)
-3. **Create the data folder as your YAMS user, then start:**
+2. **Create the data folder as your YAMS user, then start:**
    ```bash
    mkdir -p /opt/yams/config/votarr
    cd /opt/yams && yams start votarr
    ```
-4. **Expose it through your Cloudflare Tunnel** (Zero Trust → Networks → Tunnels → your tunnel → Public hostnames), adding a hostname matching `VOTARR_URL`:
+3. **Expose it through your Cloudflare Tunnel** (Zero Trust → Networks → Tunnels → your tunnel → Public hostnames), adding the hostname you used for `ORIGIN`:
    - cloudflared as a container on the YAMS network → service `http://votarr:3000`
    - cloudflared on the host → uncomment the `ports:` line and use `http://localhost:3069`
-5. **Sign in** at your hostname with your Jellyfin login (you'll be owner), then open **Home → Check Seerr and Radarr**. Both should say `"status":"ok"`.
+4. **Sign in** at your hostname with your Jellyfin login (you'll be owner), then open **Home → Check Seerr and Radarr**. Both should say `"status":"ok"`.
 
 **Updating:** if Watchtower is running, it pulls new images automatically. Otherwise:
 
