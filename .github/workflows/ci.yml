@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, master]
   pull_request:
 
 jobs:
@@ -20,6 +20,7 @@ jobs:
       - run: npm test
       - run: npm run build
 
+  # Publishes ghcr.io/<owner>/votarr:latest (and :sha-<commit>) for the YAMS compose file to pull.
   image:
     needs: check
     runs-on: ubuntu-latest
@@ -39,6 +40,11 @@ jobs:
         with:
           context: .
           push: ${{ github.event_name == 'push' }}
-          tags: ghcr.io/${{ github.repository }}:latest
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/votarr:latest
+            ghcr.io/${{ github.repository_owner }}/votarr:sha-${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.title=Votarr
           cache-from: type=gha
           cache-to: type=gha,mode=max

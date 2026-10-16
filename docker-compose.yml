@@ -1,10 +1,9 @@
 # Example service for your existing media stack. Copy it into your compose file,
-# or run it alongside: `docker compose up -d --build`.
+# or run it alongside: `docker compose up -d`.
 # Values come from a .env file next to this one (see .env.example).
 services:
   votarr:
-    build: .
-    # image: ghcr.io/<you>/votarr:latest   # once CI publishes images
+    image: ghcr.io/alexpepicelli/votarr:latest # or `build: .` to build from this checkout
     container_name: votarr
     restart: unless-stopped
     environment:

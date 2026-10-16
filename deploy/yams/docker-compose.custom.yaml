@@ -1,6 +1,7 @@
 # Votarr for YAMS. Paste the `votarr:` block under `services:` in
 # <INSTALL_DIRECTORY>/docker-compose.custom.yaml (usually /opt/yams). It joins YAMS's network
-# automatically, so it reaches Radarr and Seerr by container name.
+# automatically, so it reaches Radarr and Seerr by container name. The image is built by
+# GitHub Actions, so there's nothing to clone or build on the server.
 #
 # Needs these in YAMS's .env (<INSTALL_DIRECTORY>/.env):
 #   SEERR_API_KEY=...    Seerr → Settings → General → API Key
@@ -10,8 +11,7 @@
 
 services:
   votarr:
-    build: /opt/votarr # wherever you cloned this repo on the server
-    image: votarr:local
+    image: ghcr.io/alexpepicelli/votarr:latest
     container_name: votarr
     user: ${PUID}:${PGID}
     environment:
@@ -29,6 +29,4 @@ services:
     # Only needed if cloudflared runs on the host (not as a container on the YAMS network):
     # ports:
     #   - 3069:3000
-    labels:
-      - com.centurylinklabs.watchtower.enable=false # built locally; nothing for Watchtower to pull
     restart: unless-stopped
