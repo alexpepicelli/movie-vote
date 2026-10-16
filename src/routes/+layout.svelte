@@ -18,11 +18,15 @@
 
 <div class="mx-auto flex min-h-dvh max-w-5xl flex-col px-4">
 	<header class="flex items-center justify-between gap-4 border-b border-line py-4">
-		<a href={resolve('/')} class="font-display text-2xl tracking-wide text-marquee">🎬 Movie Vote</a
+		<a
+			href={resolve('/')}
+			class="font-display text-xl tracking-wide whitespace-nowrap text-marquee sm:text-2xl"
+			>🎬 Movie Vote</a
 		>
 
 		{#if data.user}
-			<nav class="flex items-center gap-4 text-sm">
+			<nav class="flex items-center gap-3 text-sm whitespace-nowrap sm:gap-4">
+				<a href={resolve('/discover')} class="text-muted hover:text-ink">Discover</a>
 				{#if data.user.role === 'owner'}
 					<a href={resolve('/admin/invites')} class="text-muted hover:text-ink">Invites</a>
 				{/if}

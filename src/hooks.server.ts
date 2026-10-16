@@ -8,13 +8,21 @@ import {
 	validateSession
 } from '#lib/server/auth/sessions.js';
 import { setSessionCookie } from '#lib/server/auth/cookie.js';
+import { radarr } from '#lib/server/integrations.js';
+import { startStatusPoller } from '#lib/server/poller.js';
+
+// Survives dev-server reloads so we don't stack up pollers.
+const globals = globalThis as { __mvStopPoller?: () => void };
 
 export const init: ServerInit = () => {
 	runMigrations(db);
 	deleteExpiredSessions(db);
+	globals.__mvStopPoller?.();
+	globals.__mvStopPoller = startStatusPoller(db, radarr);
 };
 
 const PUBLIC_PATHS = ['/login', '/healthz'];
+// /img is deliberately not public: posters are only served to signed-in friends.
 const PUBLIC_PREFIXES = ['/invite/'];
 
 const isPublic = (path: string) =>

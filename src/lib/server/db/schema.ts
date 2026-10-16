@@ -63,7 +63,7 @@ export const movies = sqliteTable('movies', {
 	}),
 	radarrProgress: integer('radarr_progress'), // 0–100
 	seerrStatus: text('seerr_status', {
-		enum: ['unknown', 'pending', 'processing', 'partially_available', 'available']
+		enum: ['none', 'pending', 'processing', 'partial', 'available']
 	}),
 	metadataRefreshedAt: integer('metadata_refreshed_at', { mode: 'timestamp' }),
 	statusRefreshedAt: integer('status_refreshed_at', { mode: 'timestamp' })
