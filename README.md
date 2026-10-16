@@ -25,11 +25,11 @@ The SQLite database is created at `./data/votarr.db`, and migrations run automat
 [YAMS](https://yams.media) runs extra containers from `docker-compose.custom.yaml` in its install folder (`/opt/yams` below). Those containers join YAMS's network, so Votarr reaches Radarr and Seerr by name. GitHub Actions builds the image and publishes it to `ghcr.io/alexpepicelli/votarr` on every push, so there's nothing to clone or build on the server.
 
 1. **Add the service:** copy the `votarr:` block from [`deploy/yams/docker-compose.custom.yaml`](deploy/yams/docker-compose.custom.yaml) under `services:` in `/opt/yams/docker-compose.custom.yaml`. If your Seerr user isn't ID 1, change `OWNER_SEERR_USER_ID` (Seerr → Users).
-2. **Create the data folder as your YAMS user, then start:**
+2. **Start it:**
    ```bash
-   mkdir -p /opt/yams/config/votarr
    cd /opt/yams && yams start votarr
    ```
+   It creates `/opt/yams/config/votarr` itself and runs as your YAMS user (`PUID`/`PGID`).
 3. **Expose it through your Cloudflare Tunnel** (Zero Trust → Networks → Tunnels → your tunnel → Public hostnames), e.g. `votarr.<yourdomain>`:
    - cloudflared as a container on the YAMS network → service `http://votarr:3000`
    - cloudflared on the host → uncomment the `ports:` line and use `http://localhost:3069`

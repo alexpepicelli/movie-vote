@@ -10,8 +10,9 @@ services:
   votarr:
     image: ghcr.io/alexpepicelli/votarr:latest
     container_name: votarr
-    user: ${PUID}:${PGID}
     environment:
+      - PUID=${PUID} # Votarr creates its data folder and runs as this user
+      - PGID=${PGID}
       - TZ=${TZ}
       # Your Seerr user ID (Seerr → Users; the admin is usually 1). Makes you the owner, so
       # nobody else can claim it by signing in first.

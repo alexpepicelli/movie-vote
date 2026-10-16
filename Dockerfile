@@ -26,12 +26,14 @@ COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/build ./build
 COPY --from=build /app/drizzle ./drizzle
 
-RUN mkdir -p /data && chown node:node /data
-USER node
+# Starts as root only to give /data to PUID:PGID, then runs the app as that user (su-exec).
+RUN apk add --no-cache su-exec && mkdir -p /data
+COPY --chmod=755 docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 VOLUME /data
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD wget -qO- http://127.0.0.1:3000/healthz > /dev/null || exit 1
 
+ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["node", "build"]
