@@ -1,5 +1,5 @@
 import { db } from '#lib/server/db/index.js';
-import { seerr } from '#lib/server/integrations.js';
+import { getSeerr } from '#lib/server/integrations.js';
 import { withCachedStatus } from '#lib/server/movies.js';
 import { SeerrError } from '#lib/server/seerr.js';
 import { watchlistIds } from '#lib/server/watchlist.js';
@@ -9,6 +9,7 @@ export const load: PageServerLoad = async ({ url, locals }) => {
 	const q = url.searchParams.get('q')?.trim().slice(0, 100) ?? '';
 	const page = Math.max(1, Math.min(50, Number(url.searchParams.get('page')) || 1));
 
+	const seerr = getSeerr();
 	if (!seerr) return { q, configured: false as const };
 	const saved = [...watchlistIds(db, locals.user!.id)];
 

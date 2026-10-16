@@ -8,7 +8,7 @@ import {
 	validateSession
 } from '#lib/server/auth/sessions.js';
 import { setSessionCookie } from '#lib/server/auth/cookie.js';
-import { radarr } from '#lib/server/integrations.js';
+import { getRadarr } from '#lib/server/integrations.js';
 import { startNightScheduler, startStatusPoller } from '#lib/server/poller.js';
 
 // Survives dev-server reloads so we don't stack up pollers.
@@ -21,7 +21,7 @@ export const init: ServerInit = () => {
 	runMigrations(db);
 	deleteExpiredSessions(db);
 	globals.__votarrStopPoller?.();
-	globals.__votarrStopPoller = startStatusPoller(db, radarr);
+	globals.__votarrStopPoller = startStatusPoller(db, getRadarr);
 	globals.__votarrStopScheduler?.();
 	globals.__votarrStopScheduler = startNightScheduler(db);
 };

@@ -1,7 +1,7 @@
 import { json } from '@sveltejs/kit';
-import { RADARR_API_KEY, RADARR_URL, SEERR_API_KEY, SEERR_URL } from '$app/env/private';
 import { db } from '#lib/server/db/index.js';
-import { checkDatabase, checkService } from '#lib/server/health.js';
+import { checkDatabase, checkService, SERVICE_CHECKS } from '#lib/server/health.js';
+import { configFor } from '#lib/server/integrations.js';
 import type { RequestHandler } from './$types';
 
 /**
@@ -13,13 +13,12 @@ export const GET: RequestHandler = async ({ url, fetch, locals }) => {
 	const body: Record<string, unknown> = { database };
 
 	if (url.searchParams.has('deep') && locals.user?.role === 'owner') {
-		const [seerr, radarr] = await Promise.all([
-			checkService({ url: SEERR_URL, apiKey: SEERR_API_KEY, statusPath: '/api/v1/status' }, fetch),
-			checkService(
-				{ url: RADARR_URL, apiKey: RADARR_API_KEY, statusPath: '/api/v3/system/status' },
-				fetch
-			)
-		]);
+		const [seerr, radarr] = await Promise.all(
+			(['seerr', 'radarr'] as const).map((service) => {
+				const { url, apiKey } = configFor(service);
+				return checkService({ url, apiKey, statusPath: SERVICE_CHECKS[service] }, fetch);
+			})
+		);
 		body.seerr = seerr;
 		body.radarr = radarr;
 	}

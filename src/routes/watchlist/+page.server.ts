@@ -1,6 +1,6 @@
 import { error, fail } from '@sveltejs/kit';
 import { db } from '#lib/server/db/index.js';
-import { seerr } from '#lib/server/integrations.js';
+import { getSeerr } from '#lib/server/integrations.js';
 import { getMovie } from '#lib/server/movies.js';
 import {
 	addToWatchlist,
@@ -35,7 +35,7 @@ export const actions: Actions = {
 		const tmdbId = await tmdbIdFrom(request);
 		let movie;
 		try {
-			movie = await getMovie(db, seerr, tmdbId); // makes sure it's cached
+			movie = await getMovie(db, getSeerr(), tmdbId); // makes sure it's cached
 		} catch {
 			return fail(503, { tmdbId, error: "Can't reach Seerr right now. Try again shortly." });
 		}

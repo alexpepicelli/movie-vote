@@ -1,5 +1,6 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { OWNER_SEERR_USER_ID, SEERR_URL } from '$app/env/private';
+import { OWNER_SEERR_USER_ID } from '$app/env/private';
+import { seerrUrl } from '#lib/server/integrations.js';
 import { db } from '#lib/server/db/index.js';
 import { createSession } from '#lib/server/auth/sessions.js';
 import { safeRedirect, setSessionCookie } from '#lib/server/auth/cookie.js';
@@ -18,7 +19,7 @@ import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = ({ locals, url }) => {
 	if (locals.user) redirect(303, safeRedirect(url.searchParams.get('redirectTo')));
-	return { needsSetup: userCount(db) === 0, seerrEnabled: !!SEERR_URL };
+	return { needsSetup: userCount(db) === 0, seerrEnabled: !!seerrUrl() };
 };
 
 export const actions: Actions = {
@@ -44,7 +45,7 @@ export const actions: Actions = {
 		if (existing?.authKind === 'local') {
 			userId = (await verifyLocalLogin(db, username, password))?.id;
 		} else {
-			const result = await seerrLogin(SEERR_URL, typed, password, fetch);
+			const result = await seerrLogin(seerrUrl(), typed, password, fetch);
 			if (result.ok) userId = upsertSeerrUser(db, result.user, OWNER_SEERR_USER_ID).id;
 			else if (result.reason === 'unavailable')
 				return fail(503, {

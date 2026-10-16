@@ -34,8 +34,9 @@
 
 {#if !data.configured}
 	<p class="mt-8 rounded-xl border border-line bg-panel p-6 text-muted">
-		Seerr isn't connected yet. Set <code>SEERR_URL</code> and <code>SEERR_API_KEY</code> to search for
-		movies.
+		Seerr isn't connected yet{#if data.user?.role === 'owner'}: add its API key in
+			<a href={resolve('/admin/settings')} class="text-marquee underline">Admin → Settings</a
+			>{:else}. Ask the owner to connect it{/if}.
 	</p>
 {:else if data.error}
 	<p class="mt-8 rounded-xl border border-curtain/40 bg-panel p-6 text-curtain" role="alert">

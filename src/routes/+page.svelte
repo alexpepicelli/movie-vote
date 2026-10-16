@@ -24,6 +24,21 @@
 	const showWinner = $derived(!!n?.winner && revealed);
 </script>
 
+{#if data.needsConnecting}
+	<a
+		href={resolve('/admin/settings')}
+		class="mb-6 flex items-center justify-between gap-3 rounded-xl border border-marquee/50 bg-marquee/10 p-4 text-sm"
+	>
+		<span>
+			<span class="font-semibold">Connect Seerr and Radarr.</span>
+			<span class="text-muted"
+				>Paste their API keys to turn on search, requests and status badges.</span
+			>
+		</span>
+		<span class="shrink-0 text-marquee">Settings →</span>
+	</a>
+{/if}
+
 {#if n}
 	<a
 		href={resolve('/nights/[id]', { id: n.id })}
@@ -129,7 +144,7 @@
 <p class="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-sm">
 	<a href={resolve('/watchlist')} class="text-marquee underline">Your watchlist ({data.myCount})</a>
 	{#if isOwner}
-		<a href={resolve('/healthz?deep')} class="text-muted underline">Check Seerr and Radarr</a>
+		<a href={resolve('/admin/settings')} class="text-muted underline">Seerr & Radarr settings</a>
 	{/if}
 </p>
 

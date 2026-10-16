@@ -1,6 +1,7 @@
 import { db } from '#lib/server/db/index.js';
 import { advanceDueNights, currentNight, nightView, ratingPrompt } from '#lib/server/nights.js';
 import { mostWanted, watchlistIds } from '#lib/server/watchlist.js';
+import { getRadarr, getSeerr } from '#lib/server/integrations.js';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = ({ locals }) => {
@@ -31,6 +32,7 @@ export const load: PageServerLoad = ({ locals }) => {
 			winner: view.night.status === 'closed' ? (view.entries[0]?.movie ?? null) : null
 		},
 		rateNight: ratingPrompt(db, userId),
+		needsConnecting: locals.user!.role === 'owner' && (!getSeerr() || !getRadarr()),
 		myCount: saved.size,
 		mostWanted: mostWanted(db, 10).map((m) => ({
 			movie: m.movie,

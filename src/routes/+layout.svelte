@@ -13,12 +13,16 @@
 		{ href: resolve('/watchlist'), label: 'Watchlist', icon: '🍿' },
 		{ href: resolve('/nights'), label: 'Nights', icon: '🎟️' },
 		...(data.user?.role === 'owner'
-			? [{ href: resolve('/admin/invites'), label: 'Invites', icon: '✉️' }]
+			? [{ href: resolve('/admin/settings'), label: 'Admin', icon: '⚙️' }]
 			: [])
 	]);
 
 	const isActive = (href: string) =>
-		href === '/' ? page.url.pathname === '/' : page.url.pathname.startsWith(href);
+		href === '/'
+			? page.url.pathname === '/'
+			: href.startsWith('/admin')
+				? page.url.pathname.startsWith('/admin')
+				: page.url.pathname.startsWith(href);
 </script>
 
 <svelte:head>

@@ -27,7 +27,7 @@ describe('checkService', () => {
 		const fetchFn = async () => new Response('nope', { status: 401 });
 		expect(await checkService(service, fetchFn as typeof fetch)).toEqual({
 			status: 'error',
-			error: 'HTTP 401'
+			error: 'the API key was rejected (HTTP 401)'
 		});
 	});
 

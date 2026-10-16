@@ -26,7 +26,7 @@
 <svelte:head><title>Invites · Votarr</title></svelte:head>
 
 <div class="flex items-center justify-between gap-4">
-	<h1 class="font-display text-4xl tracking-wide">Invites</h1>
+	<h2 class="font-display text-2xl tracking-wide">Invite links</h2>
 	<form method="POST" action="?/create" use:enhance>
 		<button class="btn w-auto px-4">New invite link</button>
 	</form>

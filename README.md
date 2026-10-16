@@ -24,20 +24,17 @@ The SQLite database is created at `./data/votarr.db`, and migrations run automat
 
 [YAMS](https://yams.media) runs extra containers from `docker-compose.custom.yaml` in its install folder (`/opt/yams` below). Those containers join YAMS's network, so Votarr reaches Radarr and Seerr by name. GitHub Actions builds the image and publishes it to `ghcr.io/alexpepicelli/votarr` on every push, so there's nothing to clone or build on the server.
 
-1. **Add the service:** copy the `votarr:` block from [`deploy/yams/docker-compose.custom.yaml`](deploy/yams/docker-compose.custom.yaml) under `services:` in `/opt/yams/docker-compose.custom.yaml`, then fill in:
-   - `ORIGIN`: your public hostname, e.g. `https://votarr.example.com`
-   - `SEERR_API_KEY` and `RADARR_API_KEY` (each app → Settings → General)
-   - the Seerr container name if it isn't `seerr` (`docker ps`)
-   - `OWNER_SEERR_USER_ID` (Seerr → Users → your user)
+1. **Add the service:** copy the `votarr:` block from [`deploy/yams/docker-compose.custom.yaml`](deploy/yams/docker-compose.custom.yaml) under `services:` in `/opt/yams/docker-compose.custom.yaml`. If your Seerr user isn't ID 1, change `OWNER_SEERR_USER_ID` (Seerr → Users).
 2. **Create the data folder as your YAMS user, then start:**
    ```bash
    mkdir -p /opt/yams/config/votarr
    cd /opt/yams && yams start votarr
    ```
-3. **Expose it through your Cloudflare Tunnel** (Zero Trust → Networks → Tunnels → your tunnel → Public hostnames), adding the hostname you used for `ORIGIN`:
+3. **Expose it through your Cloudflare Tunnel** (Zero Trust → Networks → Tunnels → your tunnel → Public hostnames), e.g. `votarr.<yourdomain>`:
    - cloudflared as a container on the YAMS network → service `http://votarr:3000`
    - cloudflared on the host → uncomment the `ports:` line and use `http://localhost:3069`
-4. **Sign in** at your hostname with your Jellyfin login (you'll be owner), then open **Home → Check Seerr and Radarr**. Both should say `"status":"ok"`.
+4. **Sign in** at your hostname with your Jellyfin login (you'll be owner).
+5. **Connect your stack** in **Admin → Settings**. The Seerr and Radarr URLs are pre-filled for YAMS (`http://seerr:5055`, `http://radarr:7878`), so just paste each API key (Settings → General in each app), test and save.
 
 **Updating:** if Watchtower is running, it pulls new images automatically. Otherwise:
 
@@ -47,15 +44,15 @@ cd /opt/yams && docker compose -f docker-compose.yaml -f docker-compose.custom.y
 
 **If the image is private:** GitHub publishes new packages as private. Either make it public (GitHub → your profile → Packages → votarr → Package settings → Change visibility), or log the server in once with a token that has `read:packages`: `docker login ghcr.io -u alexpepicelli`.
 
-Use the public hostname rather than the LAN port. Sign-in and voting forms only accept requests from `ORIGIN`. Data lives in `/opt/yams/config/votarr`: back up that folder.
+Use the public hostname rather than the LAN port: sign-in cookies are HTTPS-only. Data (including your saved API keys) lives in `/opt/yams/config/votarr`. Back up that folder and keep it private.
 
 ## Deploy (plain Docker Compose)
 
 1. Copy `docker-compose.yml` to the server.
-2. Create `.env` from `.env.example`. Set `ORIGIN` to the public hostname and fill in the API keys.
+2. Optionally create `.env` from `.env.example`. Everything in it is optional, and Seerr/Radarr can be connected in Admin → Settings instead.
 3. Make sure the `networks:` name in `docker-compose.yml` matches the network Radarr, Seerr and cloudflared share.
 4. Run `docker compose up -d`.
 5. In Cloudflare Zero Trust → Tunnels → your tunnel → Public hostnames, add `votarr.<yourdomain>` → `http://votarr:3000`.
-6. Check `https://votarr.<yourdomain>/healthz?deep` shows Seerr and Radarr as `ok`.
+6. Sign in, then connect Seerr and Radarr in **Admin → Settings**.
 
 Data lives in `./data` on the host. Back up that folder.

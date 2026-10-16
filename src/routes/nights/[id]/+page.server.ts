@@ -1,6 +1,6 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { db } from '#lib/server/db/index.js';
-import { seerr } from '#lib/server/integrations.js';
+import { getSeerr } from '#lib/server/integrations.js';
 import { getMovie, withCachedStatus } from '#lib/server/movies.js';
 import {
 	advanceDueNights,
@@ -29,6 +29,7 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
 	const night = getNight(db, params.id);
 	if (!night) error(404, 'Movie night not found');
 
+	const seerr = getSeerr();
 	const userId = locals.user!.id;
 	const view = nightView(db, night, userId);
 	if (night.status !== 'nominating')
@@ -80,7 +81,8 @@ export const actions: Actions = {
 		const tmdbId = Number(await field(request, 'tmdbId'));
 		if (!Number.isInteger(tmdbId) || tmdbId <= 0) return fail(400, { error: 'Invalid movie.' });
 		try {
-			if (!(await getMovie(db, seerr, tmdbId))) return fail(404, { error: 'Movie not found.' });
+			if (!(await getMovie(db, getSeerr(), tmdbId)))
+				return fail(404, { error: 'Movie not found.' });
 		} catch {
 			return fail(503, { error: "Can't reach Seerr right now. Try again shortly." });
 		}
@@ -106,7 +108,7 @@ export const actions: Actions = {
 		requireOwner(locals);
 		const night = getNight(db, params.id);
 		if (!night?.winnerTmdbId) return fail(400, { error: 'There’s no winner to request.' });
-		const result = await requestMovie(db, seerr, night.winnerTmdbId, locals.user!.id);
+		const result = await requestMovie(db, getSeerr(), night.winnerTmdbId, locals.user!.id);
 		return result.ok
 			? { requested: true, already: result.already }
 			: fail(502, { error: result.error });

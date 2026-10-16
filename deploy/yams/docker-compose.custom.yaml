@@ -3,8 +3,8 @@
 # automatically, so it reaches Radarr and Seerr by container name. The image is built by
 # GitHub Actions, so there's nothing to clone or build on the server.
 #
-# Fill in the <...> values below. PUID, PGID, TZ and INSTALL_DIRECTORY come from YAMS's own
-# setup, so leave those as they are.
+# Nothing to fill in: connect Seerr and Radarr in Votarr under Admin → Settings after you
+# sign in. PUID, PGID, TZ and INSTALL_DIRECTORY come from YAMS.
 
 services:
   votarr:
@@ -13,16 +13,11 @@ services:
     user: ${PUID}:${PGID}
     environment:
       - TZ=${TZ}
-      - ORIGIN=https://<votarr.yourdomain.com> # the Cloudflare Tunnel hostname friends use
-      - SEERR_URL=http://seerr:5055 # use http://jellyseerr:5055 if your container is named that
-      - SEERR_API_KEY=<seerr api key> # Seerr → Settings → General
-      - RADARR_URL=http://radarr:7878
-      - RADARR_API_KEY=<radarr api key> # Radarr → Settings → General
       # Your Seerr user ID (Seerr → Users; the admin is usually 1). Makes you the owner, so
       # nobody else can claim it by signing in first.
       - OWNER_SEERR_USER_ID=1
     volumes:
-      - ${INSTALL_DIRECTORY}/config/votarr:/data # database, poster cache
+      - ${INSTALL_DIRECTORY}/config/votarr:/data # database, settings, poster cache
     # Only needed if cloudflared runs on the host (not as a container on the YAMS network):
     # ports:
     #   - 3069:3000

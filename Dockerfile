@@ -14,9 +14,12 @@ RUN npm run build && npm prune --omit=dev
 # ---- runtime: only what the server needs ----
 FROM node:24-alpine
 WORKDIR /app
+# No ORIGIN needed: the public URL comes from the Host header (Cloudflare Tunnel passes the
+# hostname through) and X-Forwarded-Proto. Set ORIGIN only to pin it to one address.
 ENV NODE_ENV=production \
     PORT=3000 \
-    DATABASE_URL=/data/votarr.db
+    DATABASE_URL=/data/votarr.db \
+    PROTOCOL_HEADER=x-forwarded-proto
 
 COPY --from=build /app/package.json ./
 COPY --from=build /app/node_modules ./node_modules

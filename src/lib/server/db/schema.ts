@@ -173,3 +173,12 @@ export const auditLog = sqliteTable('audit_log', {
 		.notNull()
 		.default(sql`(unixepoch())`)
 });
+
+/** Owner-editable app settings (e.g. Seerr/Radarr connection), keyed by name. */
+export const settings = sqliteTable('settings', {
+	key: text('key').primaryKey(),
+	value: text('value').notNull(),
+	updatedAt: integer('updated_at', { mode: 'timestamp' })
+		.notNull()
+		.default(sql`(unixepoch())`)
+});
