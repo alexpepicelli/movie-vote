@@ -26,7 +26,7 @@
 <svelte:head><title>Invites · Votarr</title></svelte:head>
 
 <div class="flex items-center justify-between gap-4">
-	<h2 class="font-display text-2xl tracking-wide">Invite links</h2>
+	<h2 class="font-display text-2xl">Invite links</h2>
 	<form method="POST" action="?/create" use:enhance>
 		<button class="btn w-auto px-4">New invite link</button>
 	</form>
@@ -37,17 +37,13 @@
 </p>
 
 {#if form?.created}
-	<div class="mt-4 rounded-xl border border-marquee/40 bg-panel p-4">
+	<div class="mt-4 rounded-xl border border-accent/40 bg-panel p-4">
 		<p class="text-sm text-muted">New link. Send it to a friend:</p>
 		<div class="mt-2 flex flex-wrap items-center gap-2">
 			<code class="min-w-0 flex-1 truncate rounded bg-screen px-2 py-1 text-sm"
 				>{link(form.created)}</code
 			>
-			<button
-				type="button"
-				onclick={() => copy(form.created)}
-				class="text-sm text-marquee underline"
-			>
+			<button type="button" onclick={() => copy(form.created)} class="link text-sm">
 				{copied === form.created ? 'Copied!' : 'Copy'}
 			</button>
 		</div>
@@ -59,16 +55,16 @@
 		{@const open = status(invite) === 'Open'}
 		<li class="flex flex-wrap items-center gap-3 p-4 text-sm">
 			<code class="text-muted">…{invite.code.slice(-6)}</code>
-			<span class={open ? 'text-marquee' : 'text-muted'}>{status(invite)}</span>
+			<span class={open ? 'text-accent' : 'text-muted'}>{status(invite)}</span>
 			<span class="text-muted">expires {invite.expiresAt.toLocaleDateString()}</span>
 			{#if open}
 				<span class="ml-auto flex gap-4">
-					<button type="button" onclick={() => copy(invite.code)} class="text-marquee underline">
+					<button type="button" onclick={() => copy(invite.code)} class="link">
 						{copied === invite.code ? 'Copied!' : 'Copy link'}
 					</button>
 					<form method="POST" action="?/revoke" use:enhance>
 						<input type="hidden" name="code" value={invite.code} />
-						<button class="text-curtain underline">Revoke</button>
+						<button class="min-h-8 font-semibold text-danger hover:underline">Revoke</button>
 					</form>
 				</span>
 			{/if}

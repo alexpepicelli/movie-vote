@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
+	import Icon from './Icon.svelte';
 
 	let {
 		tmdbId,
@@ -40,25 +41,24 @@
 			aria-pressed={on}
 			title={label}
 			disabled={pending}
-			class="grid size-9 place-items-center rounded-full text-lg shadow-lg ring-1 backdrop-blur-sm transition active:scale-90 {on
-				? 'bg-marquee text-screen ring-marquee'
-				: 'bg-screen/85 text-ink ring-white/20 hover:ring-marquee'}"
+			class="grid size-9 place-items-center rounded-full shadow-lg ring-1 backdrop-blur-sm transition active:scale-90 {on
+				? 'bg-accent text-on-accent ring-accent'
+				: 'bg-screen/85 text-ink ring-white/20 hover:ring-accent'}"
 		>
-			{on ? '✓' : '+'}
+			<Icon name={on ? 'check' : 'plus'} size={18} stroke={2.6} />
 		</button>
 	{:else}
 		<button
 			aria-pressed={on}
 			disabled={pending}
-			class="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition {on
-				? 'border border-marquee text-marquee hover:bg-marquee/10'
-				: 'bg-marquee text-screen hover:brightness-110'}"
+			class={on ? 'btn-ghost border-accent text-accent' : 'btn w-auto'}
 		>
-			{on ? '✓ On your watchlist' : '+ Add to watchlist'}
+			<Icon name={on ? 'check' : 'plus'} size={18} stroke={2.6} />
+			{on ? 'On your watchlist' : 'Add to watchlist'}
 		</button>
 	{/if}
 	{#if failed}
-		<span class={variant === 'icon' ? 'sr-only' : 'mt-1 block text-xs text-curtain'} role="alert">
+		<span class={variant === 'icon' ? 'sr-only' : 'mt-1 block text-xs text-danger'} role="alert">
 			Couldn't update your watchlist. Try again.
 		</span>
 	{/if}

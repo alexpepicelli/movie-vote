@@ -3,21 +3,20 @@
 
 	let {
 		storageKey,
-		posters,
+		title,
 		count,
 		children
 	}: {
 		/** localStorage key remembering that this viewer has seen the reveal. */
 		storageKey: string;
-		/** Nominee poster URLs to cycle through during the drumroll; the winner's first. */
-		posters: string[];
+		/** The winning film's title, for the title card. */
+		title: string;
 		count: number;
 		children: import('svelte').Snippet;
 	} = $props();
 
-	let stage = $state<'hidden' | 'drumroll' | 'shown'>('hidden');
-	let index = $state(0);
-	let confetti = $state(false);
+	let stage = $state<'hidden' | 'playing' | 'shown'>('hidden');
+	let fresh = $state(false); // shown just now (animate the results in) vs seen before
 
 	onMount(() => {
 		try {
@@ -27,99 +26,114 @@
 		}
 	});
 
-	function remember() {
+	function reveal() {
 		try {
 			localStorage.setItem(storageKey, '1');
 		} catch {
 			// not essential
 		}
-	}
-
-	function reveal() {
-		const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-		if (reduced || posters.length < 2) return finish(!reduced);
-
-		stage = 'drumroll';
-		// Spin through the nominees, slowing down, then land.
-		let delay = 70;
-		const step = () => {
-			index = (index + 1) % posters.length;
-			delay *= 1.15;
-			if (delay < 420) setTimeout(step, delay);
-			else {
-				index = 0; // posters[0] is the winner: land on it
-				setTimeout(() => finish(true), 900);
-			}
-		};
-		setTimeout(step, delay);
-	}
-
-	function finish(celebrate: boolean) {
-		stage = 'shown';
-		remember();
-		if (celebrate) {
-			confetti = true;
-			setTimeout(() => (confetti = false), 3500);
+		fresh = true;
+		if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+			stage = 'shown';
+			return;
 		}
+		// Sun rises, title slides in and shines, then the full results.
+		stage = 'playing';
+		setTimeout(() => (stage = 'shown'), 3200);
 	}
-
-	const COLORS = ['#f5c542', '#e5484d', '#3ecf8e', '#4aa3ff', '#ffffff'];
-	const pieces = Array.from({ length: 48 }, (_, i) => ({
-		left: (i * 37) % 100,
-		delay: ((i * 53) % 100) / 100,
-		duration: 2.2 + ((i * 29) % 10) / 10,
-		color: COLORS[i % COLORS.length],
-		rotate: (i * 47) % 360
-	}));
 </script>
 
 {#if stage === 'shown'}
-	<div class="relative">
+	<div class="flex flex-col gap-8 {fresh ? 'animate-rise' : ''}">
 		{@render children()}
-		{#if confetti}
-			<div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-				{#each pieces as p, i (i)}
-					<span
-						class="confetti absolute top-0 block h-3 w-2 rounded-sm"
-						style="left: {p.left}%; background: {p.color}; animation-delay: {p.delay}s; animation-duration: {p.duration}s; --r: {p.rotate}deg"
-					></span>
-				{/each}
-			</div>
-		{/if}
 	</div>
 {:else}
 	<section
-		class="mt-8 grid place-items-center gap-5 rounded-2xl border border-marquee/40 bg-gradient-to-br from-marquee/10 to-transparent p-8 text-center"
+		class="relative grid min-h-[26rem] place-items-center overflow-hidden rounded-2xl border border-line bg-[#0a0818] p-6 text-center"
 		aria-live="polite"
 	>
-		{#if stage === 'drumroll'}
-			<p class="text-xs tracking-widest text-marquee uppercase">🥁 And the winner is…</p>
-			<img
-				src={posters[index]}
-				alt=""
-				class="w-40 rounded-xl shadow-2xl ring-1 ring-marquee/50 sm:w-48"
-			/>
+		{#if stage === 'playing'}
+			<div class="pointer-events-none absolute inset-0" aria-hidden="true">
+				<div
+					class="sun retro-sun bottom-28 left-1/2 size-56 -translate-x-1/2 opacity-60 [--sun-gap:#0a0818]"
+				></div>
+				<div class="retro-grid h-36"></div>
+			</div>
+			<div class="relative flex flex-col items-center gap-3 self-start pt-6">
+				<p class="eyebrow fade text-live [text-shadow:0_0_10px_rgba(69,227,255,0.6)]">
+					Tonight's feature
+				</p>
+				<p class="title font-display text-5xl leading-[0.9] text-sunset sm:text-7xl">
+					{title}
+				</p>
+			</div>
 		{:else}
-			<p class="text-xs tracking-widest text-marquee uppercase">The votes are in</p>
-			<p class="font-display text-3xl tracking-wide">
-				{count} film{count === 1 ? '' : 's'} nominated. One winner.
-			</p>
-			<button onclick={reveal} class="btn w-auto px-6 py-3 text-base">🎬 Reveal the winner</button>
+			<div class="flex flex-col items-center gap-4">
+				<p class="eyebrow text-muted">The votes are in</p>
+				<p class="font-display text-4xl leading-none sm:text-5xl">Ready for the winner?</p>
+				<p class="max-w-xs text-sm text-muted">
+					{count} film{count === 1 ? '' : 's'} nominated, one winner. Best on the big screen.
+				</p>
+				<button onclick={reveal} class="btn mt-2 w-auto px-7">Reveal the winner</button>
+			</div>
 		{/if}
 	</section>
 {/if}
 
 <style>
-	.confetti {
-		animation-name: fall;
-		animation-timing-function: cubic-bezier(0.3, 0.6, 0.6, 1);
-		animation-fill-mode: forwards;
-		transform: translateY(-20px) rotate(var(--r));
+	.sun {
+		animation: sun-rise 1.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 	}
-	@keyframes fall {
-		to {
-			transform: translateY(700px) rotate(calc(var(--r) + 540deg));
+	.fade {
+		animation: fade 0.5s 0.3s ease-out both;
+	}
+	.title {
+		animation:
+			title-in 0.7s 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both,
+			shine 1.6s 1.4s ease-in-out both;
+		background-image:
+			linear-gradient(100deg, transparent 40%, rgba(255, 255, 255, 0.95) 50%, transparent 60%),
+			linear-gradient(
+				180deg,
+				#fff3d6 10%,
+				var(--color-sunset) 52%,
+				var(--color-accent) 54%,
+				#c03dff 100%
+			);
+		background-size:
+			250% 100%,
+			100% 100%;
+		background-repeat: no-repeat;
+		filter: drop-shadow(0 4px 0 #2a0f3a);
+	}
+	@keyframes sun-rise {
+		from {
+			transform: translateY(120px);
 			opacity: 0;
+		}
+	}
+	@keyframes fade {
+		from {
+			opacity: 0;
+			transform: translateY(8px);
+		}
+	}
+	@keyframes title-in {
+		from {
+			opacity: 0;
+			transform: translateX(-40px) skewX(-12deg);
+		}
+	}
+	@keyframes shine {
+		from {
+			background-position:
+				-160% 0,
+				0 0;
+		}
+		to {
+			background-position:
+				260% 0,
+				0 0;
 		}
 	}
 </style>

@@ -29,17 +29,17 @@
 		maxlength="100"
 		class="field mt-0 flex-1"
 	/>
-	<button class="btn w-auto px-5">Search</button>
+	<button class="btn w-auto">Search</button>
 </form>
 
 {#if !data.configured}
 	<p class="mt-8 rounded-xl border border-line bg-panel p-6 text-muted">
 		Seerr isn't connected yet{#if data.user?.role === 'owner'}: add its API key in
-			<a href={resolve('/admin/settings')} class="text-marquee underline">Admin → Settings</a
-			>{:else}. Ask the owner to connect it{/if}.
+			<a href={resolve('/admin/settings')} class="link">Admin → Settings</a>{:else}. Ask the owner
+			to connect it{/if}.
 	</p>
 {:else if data.error}
-	<p class="mt-8 rounded-xl border border-curtain/40 bg-panel p-6 text-curtain" role="alert">
+	<p class="mt-8 rounded-xl border border-danger/40 bg-panel p-6 text-danger" role="alert">
 		{data.error}
 	</p>
 {:else if data.search}
@@ -57,14 +57,14 @@
 				{#if data.search.page > 1}
 					<a
 						href={resolve(`/discover?q=${encodeURIComponent(data.q)}&page=${data.search.page - 1}`)}
-						class="text-marquee underline">← Previous</a
+						class="link">← Previous</a
 					>
 				{/if}
 				<span class="text-muted">Page {data.search.page} of {data.search.totalPages}</span>
 				{#if data.search.page < data.search.totalPages}
 					<a
 						href={resolve(`/discover?q=${encodeURIComponent(data.q)}&page=${data.search.page + 1}`)}
-						class="text-marquee underline">Next →</a
+						class="link">Next →</a
 					>
 				{/if}
 			</nav>
@@ -75,7 +75,7 @@
 {:else if data.rows}
 	{#each data.rows as row (row.title)}
 		<section class="mt-8">
-			<h2 class="font-display text-2xl tracking-wide">{row.title}</h2>
+			<h2 class="font-display text-2xl">{row.title}</h2>
 			<div
 				class="-mx-4 mt-3 flex snap-x gap-4 overflow-x-auto px-4 pb-2 [&>*]:w-36 [&>*]:shrink-0 [&>*]:snap-start sm:[&>*]:w-40"
 			>

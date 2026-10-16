@@ -18,14 +18,14 @@
 
 	type Tone = 'ok' | 'idle' | 'error';
 	const TONES: Record<Tone, string> = {
-		ok: 'bg-emerald-500/15 text-emerald-300 ring-emerald-400/30',
+		ok: 'bg-live/15 text-live ring-live/30',
 		idle: 'bg-white/5 text-muted ring-white/10',
-		error: 'bg-curtain/15 text-curtain ring-curtain/30'
+		error: 'bg-danger/15 text-danger ring-danger/30'
 	};
 	const DOTS: Record<Tone, string> = {
-		ok: 'bg-emerald-400',
+		ok: 'bg-live',
 		idle: 'bg-muted/60',
-		error: 'bg-curtain'
+		error: 'bg-danger'
 	};
 
 	/** A job is unhealthy if its most recent run failed. */
@@ -82,7 +82,7 @@
 			.server.node}
 	</p>
 	<button
-		class="shrink-0 rounded-lg border border-line px-3 py-1.5 text-sm hover:border-marquee"
+		class="shrink-0 rounded-lg border border-line px-3 py-1.5 text-sm hover:border-accent"
 		disabled={refreshing}
 		onclick={async () => {
 			refreshing = true;
@@ -94,7 +94,7 @@
 
 <div class="mt-6 grid gap-6 lg:grid-cols-2">
 	<section class="rounded-2xl border border-line bg-panel p-5">
-		<h2 class="font-display text-2xl tracking-wide">Connections</h2>
+		<h2 class="font-display text-2xl">Connections</h2>
 		<ul class="mt-3 divide-y divide-line">
 			<li class="flex items-center justify-between gap-3 py-2.5">
 				<div>
@@ -117,7 +117,7 @@
 							{#if svc.check.status === 'ok'}
 								{svc.check.version ? `v${svc.check.version} · ` : ''}{svc.check.latencyMs} ms
 							{:else if svc.check.status === 'error'}
-								<span class="text-curtain">{svc.check.error}</span>
+								<span class="text-danger">{svc.check.error}</span>
 							{:else}
 								No API key. <a href={resolve('/admin/settings')} class="underline">Set it up</a>
 							{/if}
@@ -144,7 +144,7 @@
 	</section>
 
 	<section class="rounded-2xl border border-line bg-panel p-5">
-		<h2 class="font-display text-2xl tracking-wide">Background jobs</h2>
+		<h2 class="font-display text-2xl">Background jobs</h2>
 		<ul class="mt-3 divide-y divide-line">
 			{#each jobs as job (job.name)}
 				{@const tone = !job.status.lastRun && job.latest ? 'ok' : jobTone(job.status)}
@@ -164,7 +164,7 @@
 						{/if}
 					</p>
 					{#if job.status.lastError}
-						<p class="mt-1 text-xs text-curtain">
+						<p class="mt-1 text-xs text-danger">
 							Last error <LocalTime date={job.status.lastError.at} />: {job.status.lastError
 								.message}
 						</p>
@@ -177,7 +177,7 @@
 	<section class="rounded-2xl border border-line bg-panel p-5 lg:col-span-2">
 		<div class="flex flex-wrap items-start justify-between gap-3">
 			<div>
-				<h2 class="font-display text-2xl tracking-wide">Backups</h2>
+				<h2 class="font-display text-2xl">Backups</h2>
 				<p class="text-sm text-muted">
 					A copy of the database is made once a day and kept for {data.backups.keepDays} days, in
 					<code class="text-xs break-all">{data.backups.dir}</code>. To restore, stop Votarr and
@@ -202,9 +202,9 @@
 		</div>
 
 		{#if form?.error}
-			<p class="mt-3 text-sm text-curtain" role="alert">{form.error}</p>
+			<p class="mt-3 text-sm text-danger" role="alert">{form.error}</p>
 		{:else if form?.backedUp}
-			<p class="mt-3 text-sm text-emerald-300" role="status">Saved {form.backedUp}.</p>
+			<p class="mt-3 text-sm text-live" role="status">Saved {form.backedUp}.</p>
 		{/if}
 
 		{#if data.backups.list.length}

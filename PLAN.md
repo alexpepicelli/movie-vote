@@ -336,7 +336,7 @@ Mobile-first, checked at 375 px, 768 px and 1280 px.
 | M5 ✅ | Results      | Winner reveal, owner request via Seerr, history, ratings                     |
 | M6 ⏸  | Discord      | Webhook notifications for each phase plus the "ready" alert                  |
 | M7 ✅ | Polish       | SSE live updates, PWA, admin health page, backups                            |
-| M8    | Redesign     | Midnight Movie theme, shared components, responsive layouts (§12, §16)       |
+| M8 ✅ | Redesign     | Midnight Movie theme, shared components, responsive layouts (§12, §16)       |
 | M9    | Voting v2    | Up/down votes, scores, new tie-breaks, migration (§13)                       |
 | M10   | People       | Avatars, attendance, Who's in strip, visible votes, secret ballot (§14, §15) |
 

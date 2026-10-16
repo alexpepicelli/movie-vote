@@ -18,19 +18,20 @@
 <svelte:head><title>Watchlist · Votarr</title></svelte:head>
 
 <div class="flex items-end justify-between gap-4">
-	<h1 class="font-display text-4xl tracking-wide">Watchlist</h1>
-	<a href={resolve('/discover')} class="text-sm text-marquee underline">Find more movies</a>
+	<h1 class="font-display text-4xl text-sunset">Watchlist</h1>
+	<a href={resolve('/discover')} class="link text-sm">Find more movies</a>
 </div>
 
-<div role="tablist" class="mt-4 inline-flex rounded-lg border border-line bg-panel p-1 text-sm">
+<div role="tablist" class="mt-4 inline-flex rounded-xl bg-panel p-1 text-sm">
 	<a
 		role="tab"
 		aria-selected={data.tab === 'mine'}
 		href={resolve('/watchlist')}
 		data-sveltekit-replacestate
-		class="rounded-md px-3 py-1.5 {data.tab === 'mine'
-			? 'bg-marquee font-semibold text-screen'
-			: 'text-muted'}"
+		class="flex min-h-9 items-center gap-1 rounded-lg px-4 font-semibold transition {data.tab ===
+		'mine'
+			? 'bg-line text-ink'
+			: 'text-muted hover:text-ink'}"
 	>
 		Mine <span class="opacity-70">{data.mine.length}</span>
 	</a>
@@ -39,9 +40,10 @@
 		aria-selected={data.tab === 'group'}
 		href={resolve('/watchlist?tab=group')}
 		data-sveltekit-replacestate
-		class="rounded-md px-3 py-1.5 {data.tab === 'group'
-			? 'bg-marquee font-semibold text-screen'
-			: 'text-muted'}"
+		class="flex min-h-9 items-center gap-1 rounded-lg px-4 font-semibold transition {data.tab ===
+		'group'
+			? 'bg-line text-ink'
+			: 'text-muted hover:text-ink'}"
 	>
 		Most wanted
 	</a>
@@ -56,13 +58,13 @@
 			{#each data.mine as { movie, watched } (movie.tmdbId)}
 				<div class:opacity-60={watched}>
 					<MovieCard movie={cardMovie(movie)} status={movie} watchlisted={true} />
-					{#if watched}<p class="text-xs text-marquee">✓ Watched together</p>{/if}
+					{#if watched}<p class="text-xs font-semibold text-sunset">Watched together</p>{/if}
 				</div>
 			{/each}
 		</div>
 	{:else}
 		<div class="mt-6 rounded-2xl border border-dashed border-line p-8 text-center">
-			<p class="font-display text-2xl tracking-wide">Nothing here yet</p>
+			<p class="font-display text-2xl">Nothing here yet</p>
 			<p class="mt-1 text-sm text-muted">
 				Tap <span class="text-ink">+</span> on any movie to save it for movie night.
 			</p>
@@ -89,7 +91,7 @@
 	</ol>
 {:else}
 	<div class="mt-6 rounded-2xl border border-dashed border-line p-8 text-center">
-		<p class="font-display text-2xl tracking-wide">No one's added anything yet</p>
+		<p class="font-display text-2xl">No one's added anything yet</p>
 		<p class="mt-1 text-sm text-muted">Once friends add movies, the most popular show up here.</p>
 	</div>
 {/if}

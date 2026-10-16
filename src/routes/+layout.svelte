@@ -5,6 +5,8 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { invalidate } from '$app/navigation';
+	import Avatar from '#lib/components/Avatar.svelte';
+	import Icon from '#lib/components/Icon.svelte';
 
 	let { children, data }: LayoutProps = $props();
 
@@ -32,12 +34,12 @@
 	});
 
 	const links = $derived([
-		{ href: resolve('/'), label: 'Home', icon: '🏠' },
-		{ href: resolve('/discover'), label: 'Discover', icon: '🔎' },
-		{ href: resolve('/watchlist'), label: 'Watchlist', icon: '🍿' },
-		{ href: resolve('/nights'), label: 'Nights', icon: '🎟️' },
+		{ href: resolve('/'), label: 'Tonight', icon: 'home' as const },
+		{ href: resolve('/discover'), label: 'Discover', icon: 'search' as const },
+		{ href: resolve('/watchlist'), label: 'Watchlist', icon: 'bookmark' as const },
+		{ href: resolve('/nights'), label: 'Nights', icon: 'calendar' as const },
 		...(data.user?.role === 'owner'
-			? [{ href: resolve('/admin/settings'), label: 'Admin', icon: '⚙️' }]
+			? [{ href: resolve('/admin/settings'), label: 'Admin', icon: 'settings' as const }]
 			: [])
 	]);
 
@@ -58,48 +60,54 @@
 	<meta name="mobile-web-app-capable" content="yes" />
 	<meta name="apple-mobile-web-app-status-bar-style" content="black" />
 	<meta name="apple-mobile-web-app-title" content="Votarr" />
-	<meta name="theme-color" content="#15151c" />
+	<meta name="theme-color" content="#0d0b1e" />
 	<title>Votarr</title>
 	<link rel="preconnect" href="https://fonts.googleapis.com" />
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
-	<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
+	<link
+		href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@1,700;1,800&family=Manrope:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap"
+		rel="stylesheet"
+	/>
 </svelte:head>
 
-<div class="mx-auto flex min-h-dvh max-w-5xl flex-col px-4">
-	<header class="flex items-center justify-between gap-4 border-b border-line py-4">
-		<a
-			href={resolve('/')}
-			class="font-display text-xl tracking-wide whitespace-nowrap text-marquee sm:text-2xl"
-			>🎬 Votarr</a
-		>
+<div class="mx-auto flex min-h-dvh max-w-6xl flex-col px-4 sm:px-6">
+	<header class="flex items-center justify-between gap-4 py-4">
+		<a href={resolve('/')} class="font-display text-2xl leading-none text-sunset">VOTARR</a>
 
 		{#if data.user}
-			<nav class="hidden items-center gap-5 text-sm sm:flex" aria-label="Main">
-				{#each links.slice(1) as link (link.href)}
+			<nav class="hidden items-center gap-1 text-sm sm:flex" aria-label="Main">
+				{#each links as link (link.href)}
+					{@const active = isActive(link.href)}
 					<a
 						href={link.href}
-						aria-current={isActive(link.href) ? 'page' : undefined}
-						class={isActive(link.href) ? 'text-ink' : 'text-muted hover:text-ink'}>{link.label}</a
+						aria-current={active ? 'page' : undefined}
+						class="flex items-center gap-2 rounded-lg px-3 py-2 font-semibold transition {active
+							? 'bg-panel text-ink'
+							: 'text-muted hover:text-ink'}"
 					>
+						<Icon name={link.icon} size={18} class={active ? 'text-accent' : ''} />
+						<span class="hidden md:inline">{link.label}</span>
+					</a>
 				{/each}
 			</nav>
 
-			<div class="flex items-center gap-3 text-sm whitespace-nowrap">
-				<span class="flex items-center gap-2">
-					<span
-						class="grid size-7 place-items-center rounded-full bg-curtain text-xs font-semibold uppercase"
-						aria-hidden="true">{data.user.displayName.slice(0, 1)}</span
-					>
-					<span class="hidden md:inline">{data.user.displayName}</span>
-				</span>
+			<div class="flex items-center gap-2 text-sm whitespace-nowrap">
+				<Avatar id={data.user.id} name={data.user.displayName} size={32} />
+				<span class="hidden font-semibold lg:inline">{data.user.displayName}</span>
 				<form method="POST" action={resolve('/logout')}>
-					<button class="text-muted hover:text-ink">Sign out</button>
+					<button
+						aria-label="Sign out"
+						title="Sign out"
+						class="grid size-10 place-items-center rounded-lg text-muted transition hover:bg-panel hover:text-ink"
+					>
+						<Icon name="logout" size={18} />
+					</button>
 				</form>
 			</div>
 		{/if}
 	</header>
 
-	<main class="flex-1 py-6 {data.user ? 'pb-24 sm:pb-6' : ''}">
+	<main class="flex-1 pt-2 pb-8 {data.user ? 'pb-28 sm:pb-12' : ''}">
 		{@render children()}
 	</main>
 </div>
@@ -107,19 +115,20 @@
 {#if data.user}
 	<nav
 		aria-label="Main"
-		class="fixed inset-x-0 bottom-0 z-10 border-t border-line bg-screen/95 pb-[env(safe-area-inset-bottom)] backdrop-blur sm:hidden"
+		class="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-screen/95 pb-[env(safe-area-inset-bottom)] backdrop-blur sm:hidden"
 	>
 		<ul class="mx-auto flex max-w-md justify-around">
 			{#each links as link (link.href)}
+				{@const active = isActive(link.href)}
 				<li>
 					<a
 						href={link.href}
-						aria-current={isActive(link.href) ? 'page' : undefined}
-						class="flex flex-col items-center gap-0.5 px-3 py-2 text-[11px] {isActive(link.href)
-							? 'text-marquee'
+						aria-current={active ? 'page' : undefined}
+						class="flex min-h-14 min-w-14 flex-col items-center justify-center gap-1 px-2 text-[11px] font-semibold {active
+							? 'text-accent'
 							: 'text-muted'}"
 					>
-						<span class="text-lg leading-none" aria-hidden="true">{link.icon}</span>
+						<Icon name={link.icon} size={22} />
 						{link.label}
 					</a>
 				</li>

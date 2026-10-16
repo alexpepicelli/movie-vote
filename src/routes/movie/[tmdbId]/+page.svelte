@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Icon from '#lib/components/Icon.svelte';
 	import StatusBadge from '#lib/components/StatusBadge.svelte';
 	import WatchlistButton from '#lib/components/WatchlistButton.svelte';
 	import { enhance } from '$app/forms';
@@ -33,13 +34,13 @@
 				<img
 					src={poster}
 					alt="{m.title} poster"
-					class="w-full rounded-xl shadow-2xl ring-1 ring-line"
+					class="w-full rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] ring-1 ring-white/10"
 				/>
 			{/if}
 		</div>
 
 		<div class="min-w-0 flex-1 sm:pt-24">
-			<h1 class="font-display text-4xl leading-none tracking-wide sm:text-5xl">{m.title}</h1>
+			<h1 class="font-display text-4xl leading-[0.95] text-sunset sm:text-5xl">{m.title}</h1>
 			<p class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
 				{#if m.year}<span>{m.year}</span>{/if}
 				{#if runtime}<span>{runtime}</span>{/if}
@@ -73,11 +74,9 @@
 							};
 						}}
 					>
-						<button
-							disabled={requesting}
-							class="inline-flex items-center gap-2 rounded-lg border border-line px-4 py-2 text-sm hover:border-marquee"
-						>
-							{requesting ? 'Requesting…' : '⬇ Request via Seerr'}
+						<button disabled={requesting} class="btn-ghost">
+							<Icon name="download" size={18} />
+							{requesting ? 'Requesting…' : 'Request via Seerr'}
 						</button>
 					</form>
 				{/if}
@@ -86,17 +85,17 @@
 						href="https://www.youtube.com/watch?v={encodeURIComponent(m.trailerKey)}"
 						target="_blank"
 						rel="noopener noreferrer"
-						class="inline-flex items-center gap-2 rounded-lg border border-line px-4 py-2 text-sm hover:border-marquee"
+						class="btn-ghost"
 					>
-						▶ Watch trailer
+						<Icon name="play" size={16} /> Watch trailer
 					</a>
 				{/if}
 			</div>
 
 			{#if form?.error}
-				<p class="mt-3 text-sm text-curtain" role="alert">{form.error}</p>
+				<p class="mt-3 text-sm text-danger" role="alert">{form.error}</p>
 			{:else if form?.requested}
-				<p class="mt-3 text-sm text-emerald-300" role="status">
+				<p class="mt-3 text-sm text-live" role="status">
 					{form.already
 						? 'Already requested in Seerr.'
 						: 'Requested! Radarr will pick it up shortly.'}

@@ -54,23 +54,23 @@
 		<section class="rounded-2xl border border-line bg-panel p-5">
 			<div class="flex items-start justify-between gap-3">
 				<div>
-					<h2 class="font-display text-2xl tracking-wide">{info.name}</h2>
+					<h2 class="font-display text-2xl">{info.name}</h2>
 					<p class="text-sm text-muted">{info.blurb}</p>
 				</div>
 				<span
 					class="mt-1 inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 {shown.status ===
 					'ok'
-						? 'bg-emerald-500/15 text-emerald-300 ring-emerald-400/30'
+						? 'bg-live/15 text-live ring-live/30'
 						: shown.status === 'not_configured'
 							? 'bg-white/5 text-muted ring-white/10'
-							: 'bg-curtain/15 text-curtain ring-curtain/30'}"
+							: 'bg-danger/15 text-danger ring-danger/30'}"
 				>
 					<span
 						class="size-1.5 rounded-full {shown.status === 'ok'
-							? 'bg-emerald-400'
+							? 'bg-live'
 							: shown.status === 'not_configured'
 								? 'bg-muted/60'
-								: 'bg-curtain'}"
+								: 'bg-danger'}"
 						aria-hidden="true"
 					></span>
 					{shown.status === 'ok'
@@ -120,20 +120,20 @@
 
 				{#if svc.keySource === 'saved'}
 					<label class="flex items-center gap-2 text-sm text-muted">
-						<input type="checkbox" name="clearKey" class="accent-curtain" /> Remove the saved key
+						<input type="checkbox" name="clearKey" class="accent-danger" /> Remove the saved key
 					</label>
 				{/if}
 
 				<p
 					class="text-sm {shown.status === 'ok'
-						? 'text-emerald-300'
+						? 'text-live'
 						: shown.status === 'error'
-							? 'text-curtain'
+							? 'text-danger'
 							: 'text-muted'}"
 					role="status"
 				>
 					{#if mine && 'error' in mine && mine.error}
-						<span class="text-curtain">{mine.error}</span>
+						<span class="text-danger">{mine.error}</span>
 					{:else if mine && 'saved' in mine && mine.saved}
 						Saved. {describe(
 							svc.status
@@ -153,7 +153,7 @@
 					<button
 						formaction="?/test"
 						disabled={busy !== null}
-						class="rounded-lg border border-line px-4 py-2 text-sm hover:border-marquee"
+						class="rounded-lg border border-line px-4 py-2 text-sm hover:border-accent"
 					>
 						{busy === `${svc.service}-test` ? 'Testing…' : 'Test connection'}
 					</button>

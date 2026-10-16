@@ -24,19 +24,19 @@ export const load: PageServerLoad = ({ locals, depends }) => {
 			nominationCount: view.entries.length,
 			nominationsLeft: view.night.maxNominations - view.myNominationCount,
 			votesLeft: view.night.maxVotes - view.myVoteCount,
+			maxVotes: view.night.maxVotes,
 			voterCount: view.voterCount,
 			memberCount: view.memberCount,
-			// Sorted by id rather than rank, so the fan of posters doesn't give the winner away.
-			posters: [...view.entries]
+			// Sorted by id rather than rank, so the grid doesn't give the winner away.
+			ballot: [...view.entries]
 				.sort((a, b) => a.movie.tmdbId - b.movie.tmdbId)
-				.slice(0, 5)
-				.map((e) => e.movie.posterPath),
+				.map((e) => ({ movie: e.movie, nominatedBy: e.mine ? 'you' : e.nominatedBy })),
 			winner: view.night.status === 'closed' ? (view.entries[0]?.movie ?? null) : null
 		},
 		rateNight: ratingPrompt(db, userId),
 		needsConnecting: locals.user!.role === 'owner' && (!getSeerr() || !getRadarr()),
 		myCount: saved.size,
-		mostWanted: mostWanted(db, 10).map((m) => ({
+		mostWanted: mostWanted(db, 6).map((m) => ({
 			movie: m.movie,
 			wantCount: m.wantCount,
 			mine: saved.has(m.movie.tmdbId)

@@ -1,14 +1,37 @@
 @import 'tailwindcss';
 
+/* "Midnight Movie": a clean app with an 80s blockbuster glow (PLAN.md §12). */
 @theme {
-	--color-screen: oklch(0.16 0.01 270);
-	--color-panel: oklch(0.21 0.015 270);
-	--color-line: oklch(0.3 0.015 270);
-	--color-ink: oklch(0.95 0.01 90);
-	--color-muted: oklch(0.7 0.015 270);
-	--color-marquee: oklch(0.82 0.15 85);
-	--color-curtain: oklch(0.62 0.2 25);
-	--font-display: 'Bebas Neue', ui-sans-serif, system-ui, sans-serif;
+	--color-screen: #0d0b1e;
+	--color-panel: #16132e;
+	--color-raised: #1d1940;
+	--color-line: #2a2550;
+	--color-ink: #f1eefe;
+	--color-muted: #a7a1d0;
+	--color-accent: #ff4f9a;
+	--color-sunset: #ffb347;
+	--color-live: #45e3ff;
+	--color-danger: #ff7a6b;
+	--color-on-accent: #1a0716;
+
+	--font-sans: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+	--font-display: 'Kanit', ui-sans-serif, system-ui, sans-serif;
+	--font-mono: 'Space Mono', ui-monospace, monospace;
+
+	--animate-rise: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+
+	@keyframes rise {
+		from {
+			opacity: 0;
+			transform: translateY(10px);
+		}
+	}
+}
+
+@keyframes grid-drift {
+	to {
+		background-position: 0 30px;
+	}
 }
 
 html {
@@ -16,15 +39,95 @@ html {
 }
 
 body {
-	@apply bg-screen text-ink antialiased;
+	@apply bg-screen font-sans text-ink antialiased;
 }
 
 @layer components {
+	/* Titles are always the heavy italic. */
+	.font-display {
+		font-style: italic;
+		font-weight: 800;
+		letter-spacing: 0;
+	}
+
+	.text-sunset {
+		background: linear-gradient(
+			180deg,
+			#fff3d6 10%,
+			var(--color-sunset) 55%,
+			var(--color-accent) 95%
+		);
+		background-clip: text;
+		color: transparent;
+		/* Italic glyphs overhang their box; keep the gradient from clipping them. */
+		padding-right: 0.08em;
+	}
+
+	.eyebrow {
+		@apply font-mono text-xs font-bold tracking-[0.2em] text-accent uppercase;
+	}
+
+	.card {
+		@apply rounded-2xl border border-line bg-panel;
+	}
+
 	.field {
-		@apply mt-1 block w-full rounded-lg border border-line bg-panel px-3 py-2 text-ink outline-none placeholder:text-muted focus:border-marquee;
+		@apply mt-1 block w-full rounded-xl border border-line bg-screen px-3 py-2.5 text-ink outline-none placeholder:text-muted focus:border-accent focus:ring-2 focus:ring-accent/25;
 	}
 
 	.btn {
-		@apply block w-full rounded-lg bg-marquee px-3 py-2 font-semibold text-screen transition hover:brightness-110 disabled:opacity-60;
+		@apply flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-4 py-2 font-bold text-on-accent transition hover:shadow-[0_8px_26px_rgba(255,79,154,0.35)] hover:brightness-110 active:scale-[0.98] disabled:opacity-50 disabled:shadow-none;
+		background-image: linear-gradient(90deg, #ff8a4c, var(--color-accent));
+	}
+
+	.btn-ghost {
+		@apply flex min-h-11 items-center justify-center gap-2 rounded-xl border border-line px-4 py-2 font-semibold text-ink transition hover:border-accent active:scale-[0.98] disabled:opacity-50;
+	}
+
+	/* The 80s horizon behind hero cards: a striped sun over a drifting perspective grid. */
+	.retro-sun {
+		position: absolute;
+		border-radius: 9999px;
+		background:
+			repeating-linear-gradient(
+				180deg,
+				transparent 0 58%,
+				var(--sun-gap, var(--color-panel)) 58% 61%,
+				transparent 61% 70%,
+				var(--sun-gap, var(--color-panel)) 70% 74%,
+				transparent 74% 82%,
+				var(--sun-gap, var(--color-panel)) 82% 87%,
+				transparent 87%
+			),
+			linear-gradient(180deg, #ffd27a, #ff8a4c 45%, var(--color-accent));
+	}
+
+	.retro-grid {
+		position: absolute;
+		left: -50%;
+		right: -50%;
+		bottom: 0;
+		transform: perspective(170px) rotateX(58deg);
+		transform-origin: bottom;
+		background-image:
+			linear-gradient(rgba(255, 79, 154, 0.4) 1.5px, transparent 1.5px),
+			linear-gradient(90deg, rgba(255, 79, 154, 0.4) 1.5px, transparent 1.5px);
+		background-size: 30px 30px;
+		mask-image: linear-gradient(180deg, transparent, #000 65%);
+		animation: grid-drift 1.4s linear infinite;
+	}
+
+	.link {
+		@apply font-semibold text-accent transition hover:text-[#ff8cc0];
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
 	}
 }

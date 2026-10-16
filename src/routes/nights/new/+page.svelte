@@ -14,13 +14,12 @@
 <svelte:head><title>New movie night · Votarr</title></svelte:head>
 
 <div class="mx-auto max-w-lg">
-	<h1 class="font-display text-4xl tracking-wide">Start a movie night</h1>
+	<h1 class="font-display text-4xl text-sunset">Start a movie night</h1>
 
 	{#if data.open}
 		<p class="mt-4 rounded-xl border border-line bg-panel p-4 text-sm">
-			<a href={resolve('/nights/[id]', { id: data.open.id })} class="text-marquee underline"
-				>{data.open.title}</a
-			> is still open. Close or cancel it before starting another.
+			<a href={resolve('/nights/[id]', { id: data.open.id })} class="link">{data.open.title}</a> is still
+			open. Close or cancel it before starting another.
 		</p>
 	{:else}
 		<p class="mt-2 text-sm text-muted">
@@ -105,7 +104,7 @@
 						type="checkbox"
 						name="resultsHidden"
 						checked={checked('resultsHidden', true)}
-						class="mt-1 accent-marquee"
+						class="mt-1 accent-accent"
 					/>
 					<span>
 						<span class="block text-sm">Hide vote counts until voting closes</span>
@@ -117,13 +116,13 @@
 						type="checkbox"
 						name="selfVoteAllowed"
 						checked={checked('selfVoteAllowed', false)}
-						class="mt-1 accent-marquee"
+						class="mt-1 accent-accent"
 					/>
 					<span class="text-sm">Let people vote for their own nominations</span>
 				</label>
 			</fieldset>
 
-			{#if form?.error}<p class="text-sm text-curtain" role="alert">{form.error}</p>{/if}
+			{#if form?.error}<p class="text-sm text-danger" role="alert">{form.error}</p>{/if}
 			<button disabled={pending} class="btn">{pending ? 'Creating…' : 'Open nominations'}</button>
 		</form>
 	{/if}
