@@ -154,7 +154,9 @@ UX notes: dark "cinema" theme, poster-first cards, works one-handed on a phone, 
 
 ---
 
-## 8. Notifications: Discord (v1)
+## 8. Notifications: Discord (⏸ benched)
+
+> **Status: on hold (2026-10-16).** Wanted, but not a priority. Pick up after M7. The env var `DISCORD_WEBHOOK_URL` already exists but nothing uses it yet.
 
 The app posts to a Discord channel webhook (`DISCORD_WEBHOOK_URL`) using rich embeds with a poster thumbnail and a link back to the app:
 
@@ -166,7 +168,22 @@ The app posts to a Discord channel webhook (`DISCORD_WEBHOOK_URL`) using rich em
 
 Each message type can be switched on or off by the owner in admin settings.
 
-**Decision:** ✅ Approved.
+**Implementation plan (agreed shape, not built):**
+
+- **Driven by database state.** A single `syncNotifications(db)` works out from each night's state which messages are due and sends any that are missing. It runs after any action that changes a night and from the minute scheduler.
+- **Sent once.** A `notifications(night_id, kind, sent_at)` table records each message, so it goes out once, survives restarts and is retried on failure. A row is only written after Discord replies with a 2xx. The migration backfills existing nights as already sent, so the first deploy doesn't spam the channel.
+- **Out-of-date messages are skipped**, e.g. no "voting open" once a night is closed. "Ready" is only sent if the winner wasn't already on the server when voting closed.
+- **Sent in the background**, so a slow Discord never slows a request. 429 responses honour `retry_after`.
+- **Embeds** use public TMDB image URLs (Discord can't reach the logged-in `/img` proxy) and links built from `ORIGIN`.
+- **`/admin/settings`**: an on/off switch per message, an optional @here per message, a "Send test message" button and the last error.
+
+**Open questions for when it resumes:**
+
+1. Should the winner message name the film? Recommended: no name, just "Results are in. Tap to reveal", to protect the in-app reveal. Alternatives: a Discord ‖spoiler‖ tag, or the full name.
+2. Default @here: on for "Voting open" and "Closing soon" only?
+3. "Closing soon": fixed at 2 hours, or a setting per night?
+
+**Decision:** ⏸ Approved but benched.
 
 ---
 
@@ -228,7 +245,7 @@ networks:
 | M3 ✅ | Watchlist    | Personal and group "Most Wanted"                                      |
 | M4 ✅ | Movie Nights | Night lifecycle, nominations, voting, tally + tie-break (unit-tested) |
 | M5 ✅ | Results      | Winner reveal, owner request via Seerr, history, ratings              |
-| M6    | Discord      | Webhook notifications for each phase plus the "ready" alert           |
+| M6 ⏸  | Discord      | Webhook notifications for each phase plus the "ready" alert           |
 | M7    | Polish       | SSE live updates, PWA, admin health page, backups                     |
 
 **Decision:** ✅ Approved. M0 is done.
