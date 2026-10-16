@@ -208,7 +208,7 @@ services:
       - ./votarr/config:/config # sqlite db + poster cache
     networks: [media]
     healthcheck:
-      test: ['CMD', 'wget', '-qO-', 'http://localhost:3000/healthz']
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:3069/healthz']
 networks:
   media:
     external: true
@@ -218,7 +218,7 @@ networks:
 - Migrations run automatically on startup
 - `/healthz` checks the DB, Seerr and Radarr
 - Backups: nightly `sqlite3 .backup` into `/config/backups`, keeping 14 days
-- **Friend access: ✅ your existing Cloudflare Tunnel.** Add a public hostname such as `votarr.<yourdomain>` → `http://votarr:3000`. The `cloudflared` container must be on the same Docker network (or point it at `localhost:3000` if cloudflared runs on the host). Set `ORIGIN` to the public URL so CSRF checks and cookies work. The app's own login protects it, so Cloudflare Access isn't needed (though it can be added).
+- **Friend access: ✅ your existing Cloudflare Tunnel.** Add a public hostname such as `votarr.<yourdomain>` → `http://votarr:3069`. The `cloudflared` container must be on the same Docker network (or point it at `localhost:3069` if cloudflared runs on the host). Set `ORIGIN` to the public URL so CSRF checks and cookies work. The app's own login protects it, so Cloudflare Access isn't needed (though it can be added).
 - SSE live updates work through Cloudflare Tunnel. The app sends a heartbeat every 30s so idle connections aren't cut.
 
 **Decision:** ✅ Approved.

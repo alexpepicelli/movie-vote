@@ -31,8 +31,8 @@ The SQLite database is created at `./data/votarr.db`, and migrations run automat
    ```
    It creates `/opt/yams/config/votarr` itself and runs as your YAMS user (`PUID`/`PGID`).
 3. **Expose it through your Cloudflare Tunnel** (Zero Trust → Networks → Tunnels → your tunnel → Public hostnames), e.g. `votarr.<yourdomain>`:
-   - cloudflared as a container on the YAMS network → service `http://votarr:3000`
-   - cloudflared on the host (your other routes say `http://localhost:…`) → uncomment the `ports:` lines and use `http://localhost:3069`
+   - cloudflared as a container on the YAMS network → service `http://votarr:3069`
+   - cloudflared on the host (your other routes say `http://localhost:…`) → use `http://localhost:3069` (the block publishes `3069:3069`)
    - locally managed tunnel (`config.yml`, dashboard is read-only) → add `- hostname: votarr.<yourdomain>` / `service: http://localhost:3069` above the `http_status:404` catch-all, run `cloudflared tunnel route dns <tunnel> votarr.<yourdomain>`, then `sudo systemctl restart cloudflared`
 4. **Sign in** at your hostname with your Jellyfin login (you'll be owner).
 5. **Connect your stack** in **Admin → Settings**. The Seerr and Radarr URLs are pre-filled for YAMS (`http://seerr:5055`, `http://radarr:7878`), so just paste each API key (Settings → General in each app), test and save.
@@ -53,7 +53,7 @@ Use the public hostname rather than the LAN port: sign-in cookies are HTTPS-only
 2. Optionally create `.env` from `.env.example`. Everything in it is optional, and Seerr/Radarr can be connected in Admin → Settings instead.
 3. Make sure the `networks:` name in `docker-compose.yml` matches the network Radarr, Seerr and cloudflared share.
 4. Run `docker compose up -d`.
-5. In Cloudflare Zero Trust → Tunnels → your tunnel → Public hostnames, add `votarr.<yourdomain>` → `http://votarr:3000`.
+5. In Cloudflare Zero Trust → Tunnels → your tunnel → Public hostnames, add `votarr.<yourdomain>` → `http://votarr:3069`.
 6. Sign in, then connect Seerr and Radarr in **Admin → Settings**.
 
 Data lives in `./config` on the host. Back up that folder.

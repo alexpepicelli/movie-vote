@@ -17,7 +17,8 @@ services:
       TZ: ${TZ:-Australia/Adelaide}
     volumes:
       - ./config:/config # database, settings, poster cache
-    # ports: ["3000:3000"]  # only if you want LAN access without the tunnel
+    ports:
+      - 3069:3069
     networks: [media]
 
 networks:

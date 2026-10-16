@@ -19,8 +19,8 @@ services:
       - OWNER_SEERR_USER_ID=1
     volumes:
       - ${INSTALL_DIRECTORY}/config/votarr:/config # database, settings, poster cache
-    # Needed if cloudflared runs on the host (its routes point at http://localhost:...).
-    # 127.0.0.1 keeps it off the LAN; the tunnel then points at http://localhost:3069.
-    # ports:
-    #   - 127.0.0.1:3069:3000
+    # Needed if cloudflared runs on the host (its routes point at http://localhost:...);
+    # the tunnel then points at http://localhost:3069.
+    ports:
+      - 3069:3069
     restart: unless-stopped

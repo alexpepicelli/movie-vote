@@ -17,7 +17,7 @@ WORKDIR /app
 # No ORIGIN needed: the public URL comes from the Host header (Cloudflare Tunnel passes the
 # hostname through) and X-Forwarded-Proto. Set ORIGIN only to pin it to one address.
 ENV NODE_ENV=production \
-    PORT=3000 \
+    PORT=3069 \
     DATABASE_URL=/config/votarr.db \
     PROTOCOL_HEADER=x-forwarded-proto
 
@@ -30,10 +30,10 @@ COPY --from=build /app/drizzle ./drizzle
 RUN apk add --no-cache su-exec && mkdir -p /config
 COPY --chmod=755 docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 VOLUME /config
-EXPOSE 3000
+EXPOSE 3069
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget -qO- http://127.0.0.1:3000/healthz > /dev/null || exit 1
+  CMD wget -qO- "http://127.0.0.1:${PORT}/healthz" > /dev/null || exit 1
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["node", "build"]
