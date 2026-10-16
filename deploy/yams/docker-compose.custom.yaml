@@ -18,7 +18,7 @@ services:
       # nobody else can claim it by signing in first.
       - OWNER_SEERR_USER_ID=1
     volumes:
-      - ${INSTALL_DIRECTORY}/config/votarr:/data # database, settings, poster cache
+      - ${INSTALL_DIRECTORY}/config/votarr:/config # database, settings, poster cache
     # Only needed if cloudflared runs on the host (not as a container on the YAMS network):
     # ports:
     #   - 3069:3000

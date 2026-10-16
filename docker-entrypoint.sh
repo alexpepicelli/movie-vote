@@ -1,5 +1,5 @@
 #!/bin/sh
-# Make /data writable for PUID:PGID (like the LinuxServer images YAMS uses), then drop root
+# Make /config writable for PUID:PGID (like the LinuxServer images YAMS uses), then drop root
 # and start the app as that user. Docker creates a missing bind-mount folder as root, so this
 # saves creating it by hand.
 set -eu
@@ -12,11 +12,11 @@ case "$PUID$PGID" in
 esac
 
 if [ "$(id -u)" = "0" ]; then
-  mkdir -p /data
+  mkdir -p /config
   # Only fix ownership when it's wrong, so restarts stay fast.
-  if [ "$(stat -c %u:%g /data)" != "$PUID:$PGID" ]; then
-    echo "Giving /data to $PUID:$PGID"
-    chown -R "$PUID:$PGID" /data
+  if [ "$(stat -c %u:%g /config)" != "$PUID:$PGID" ]; then
+    echo "Giving /config to $PUID:$PGID"
+    chown -R "$PUID:$PGID" /config
   fi
   exec su-exec "$PUID:$PGID" "$@"
 fi

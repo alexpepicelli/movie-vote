@@ -55,4 +55,4 @@ Use the public hostname rather than the LAN port: sign-in cookies are HTTPS-only
 5. In Cloudflare Zero Trust → Tunnels → your tunnel → Public hostnames, add `votarr.<yourdomain>` → `http://votarr:3000`.
 6. Sign in, then connect Seerr and Radarr in **Admin → Settings**.
 
-Data lives in `./data` on the host. Back up that folder.
+Data lives in `./config` on the host. Back up that folder.

@@ -16,7 +16,7 @@ services:
       OWNER_SEERR_USER_ID: ${OWNER_SEERR_USER_ID:-}
       TZ: ${TZ:-Australia/Adelaide}
     volumes:
-      - ./data:/data # SQLite database + backups
+      - ./config:/config # database, settings, poster cache
     # ports: ["3000:3000"]  # only if you want LAN access without the tunnel
     networks: [media]
 
