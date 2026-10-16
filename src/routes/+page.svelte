@@ -10,6 +10,7 @@
 	import StatusBadge from '#lib/components/StatusBadge.svelte';
 	import Stepper from '#lib/components/Stepper.svelte';
 	import WatchlistButton from '#lib/components/WatchlistButton.svelte';
+	import WhosIn from '#lib/components/WhosIn.svelte';
 	import { imageUrl } from '#lib/status.js';
 	import type { PageProps } from './$types';
 
@@ -210,6 +211,11 @@
 	</div>
 
 	<aside class="flex min-w-0 flex-col gap-8 lg:sticky lg:top-6">
+		{#if n}
+			<div class="animate-rise [animation-delay:120ms]">
+				<WhosIn people={n.people} nightId={n.id} canJoin={true} />
+			</div>
+		{/if}
 		{#if data.rateNight}
 			<a
 				href={resolve('/nights/[id]', { id: data.rateNight.id })}

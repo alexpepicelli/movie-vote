@@ -292,7 +292,7 @@ Each member still gets _K_ votes per night (default 3). Each vote goes on a diff
 
 - **On each film:** an avatar stack of who voted, with a small ▲/▼ badge on each face. Tap it to expand the list of names.
 - **Live:** votes already go out over SSE (M7), so other people's avatars pop in as they vote.
-- **Data:** this reuses the existing `results_hidden` column, renamed `secret_ballot` with its default flipped to off. Existing nights keep the setting they had. `nightView()` only returns voter identities when the night isn't secret, so names never reach the browser otherwise.
+- **Data:** the application calls this `secretBallot`, retaining the existing `results_hidden` database column for compatibility. The creation form defaults to a public ballot; existing nights keep their setting. `nightView()` omits per-film voter identities on secret ballots, including after close. Attendance remains public, but other people's voted badges are hidden.
 - **The reveal still happens** on open ballots. The winner may be obvious by then, but the moment is part of the fun.
 
 **Decision:** ✅ Approved.
@@ -304,7 +304,7 @@ Each member still gets _K_ votes per night (default 3). Each vote goes on a diff
 - **Avatar:** the user's Seerr/Jellyfin picture when there is one, otherwise their initials on a colour derived from their user ID (stable, and different per person). Seerr avatars are saved at sign-in and served through `/avatar/[userId]`, like posters, because Seerr's address is usually internal.
 - **Attendance comes from taking part.** Nominating or voting on a night means you're **going**. Anyone else can tap **I'm in** to say they're coming without voting yet. Everyone who hasn't done any of those counts as **not going or abstaining**. "I'm in" can be taken back while you have no nominations or votes on the night.
 - **"Who's in" strip** on Home and the night page: everyone's avatar in two groups, **Going** and **Not in yet**, with a small badge on each going person for what they've done (nominated, voted, or just "I'm in"). It shows at a glance who's coming and who to nudge.
-- **Data:** a small `attendance(night_id, user_id, joined_at)` table for explicit "I'm in" taps. Going = has an attendance row, a nomination or a vote on the night, so it's never out of sync with what people actually did. Changes go out over SSE like votes.
+- **Data:** a small `attendance(night_id, user_id, created_at)` table for explicit "I'm in" taps. Going = has an attendance row, a nomination or a vote on the night, so it's never out of sync with what people actually did. Changes go out over SSE like votes.
 - **Avatars appear wherever a person is named:** "picked by" on each film, the voter stacks (§14), ratings and comments, the history page and the header.
 
 **Decision:** ✅ Approved.
@@ -326,18 +326,18 @@ Mobile-first, checked at 375 px, 768 px and 1280 px.
 
 ## 11. Build milestones
 
-| #     | Milestone    | Deliverable                                                                  |
-| ----- | ------------ | ---------------------------------------------------------------------------- |
-| M0 ✅ | Scaffold     | SvelteKit + Drizzle + SQLite, Dockerfile, compose, CI lint/test              |
-| M1 ✅ | Auth         | Seerr (Jellyfin) login and invite links, sessions, owner role                |
-| M2 ✅ | Metadata     | Seerr search/detail, movie cache, poster proxy, Radarr status poller         |
-| M3 ✅ | Watchlist    | Personal and group "Most Wanted"                                             |
-| M4 ✅ | Movie Nights | Night lifecycle, nominations, voting, tally + tie-break (unit-tested)        |
-| M5 ✅ | Results      | Winner reveal, owner request via Seerr, history, ratings                     |
-| M6 ⏸  | Discord      | Webhook notifications for each phase plus the "ready" alert                  |
-| M7 ✅ | Polish       | SSE live updates, PWA, admin health page, backups                            |
-| M8 ✅ | Redesign     | Midnight Movie theme, shared components, responsive layouts (§12, §16)       |
-| M9 ✅ | Voting v2    | Up/down votes, scores, new tie-breaks, migration (§13)                       |
-| M10   | People       | Avatars, attendance, Who's in strip, visible votes, secret ballot (§14, §15) |
+| #      | Milestone    | Deliverable                                                                  |
+| ------ | ------------ | ---------------------------------------------------------------------------- |
+| M0 ✅  | Scaffold     | SvelteKit + Drizzle + SQLite, Dockerfile, compose, CI lint/test              |
+| M1 ✅  | Auth         | Seerr (Jellyfin) login and invite links, sessions, owner role                |
+| M2 ✅  | Metadata     | Seerr search/detail, movie cache, poster proxy, Radarr status poller         |
+| M3 ✅  | Watchlist    | Personal and group "Most Wanted"                                             |
+| M4 ✅  | Movie Nights | Night lifecycle, nominations, voting, tally + tie-break (unit-tested)        |
+| M5 ✅  | Results      | Winner reveal, owner request via Seerr, history, ratings                     |
+| M6 ⏸   | Discord      | Webhook notifications for each phase plus the "ready" alert                  |
+| M7 ✅  | Polish       | SSE live updates, PWA, admin health page, backups                            |
+| M8 ✅  | Redesign     | Midnight Movie theme, shared components, responsive layouts (§12, §16)       |
+| M9 ✅  | Voting v2    | Up/down votes, scores, new tie-breaks, migration (§13)                       |
+| M10 ✅ | People       | Avatars, attendance, Who's in strip, visible votes, secret ballot (§14, §15) |
 
 **Decision:** ✅ Approved. M0 is done.

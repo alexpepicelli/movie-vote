@@ -14,6 +14,9 @@
 	import Toast from '#lib/components/Toast.svelte';
 	import VoteControl from '#lib/components/VoteControl.svelte';
 	import WinnerReveal from '#lib/components/WinnerReveal.svelte';
+	import WhosIn from '#lib/components/WhosIn.svelte';
+	import Avatar from '#lib/components/Avatar.svelte';
+	import AvatarStack from '#lib/components/AvatarStack.svelte';
 	import { cardMovie, displayStatus, type StatusInput } from '#lib/status.js';
 	import type { PageProps } from './$types';
 
@@ -195,6 +198,8 @@
 			</div>
 		{/if}
 
+		<WhosIn people={data.people} nightId={night.id} canJoin={night.status !== 'watched'} />
+
 		{#if isOwner && night.status !== 'watched'}
 			<div class="card flex flex-col gap-3 border-dashed p-4">
 				<p class="font-mono text-[11px] tracking-wider text-muted uppercase">Owner</p>
@@ -268,9 +273,15 @@
 									wantCount={entry.saves}
 								/>
 								<div class="mt-1 flex items-center justify-between gap-2 text-xs">
-									<span class="truncate text-muted"
-										>by {entry.mine ? 'you' : entry.nominatedBy}</span
-									>
+									<span class="flex min-w-0 items-center gap-1.5 text-muted">
+										<Avatar
+											id={entry.userId}
+											name={entry.nominatedBy}
+											hasAvatar={entry.nominatorHasAvatar}
+											size={20}
+										/>
+										<span class="truncate">by {entry.mine ? 'you' : entry.nominatedBy}</span>
+									</span>
 									{#if entry.mine || isOwner}
 										<form method="POST" action="?/withdraw" use:enhance={keep(entry.id)}>
 											<input type="hidden" name="nominationId" value={entry.id} />
@@ -401,7 +412,12 @@
 				<p class="-mt-2 text-sm text-muted">
 					You have {night.maxVotes} votes: give a film ▲ if you want it, ▼ if you don't. Highest score
 					wins, and you can change your mind until voting closes.
-					{#if night.resultsHidden}Counts stay hidden until the reveal.{/if}
+					{#if night.secretBallot}
+						Secret ballot: scores stay hidden until voting closes, and nobody sees who voted for
+						what.
+					{:else}
+						Votes are public: you'll see who backs what as it happens.
+					{/if}
 				</p>
 				<SegmentedControl
 					label="Show"
@@ -447,7 +463,15 @@
 									{/if}
 									<div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
 										<StatusBadge status={entry.movie} />
-										<span>{entry.mine ? 'Your pick' : `Picked by ${entry.nominatedBy}`}</span>
+										<span class="flex items-center gap-1.5">
+											<Avatar
+												id={entry.userId}
+												name={entry.nominatedBy}
+												hasAvatar={entry.nominatorHasAvatar}
+												size={18}
+											/>
+											{entry.mine ? 'Your pick' : entry.nominatedBy}
+										</span>
 										{#if entry.votes !== null && (entry.votes.ups || entry.votes.downs)}
 											<span class="font-mono"
 												><span class="text-accent">▲{entry.votes.ups}</span>
@@ -455,6 +479,15 @@
 											>
 										{/if}
 									</div>
+									{#if entry.voters?.length}
+										<div class="mt-1">
+											<AvatarStack
+												people={entry.voters}
+												label="Votes on {entry.movie.title}"
+												size={24}
+											/>
+										</div>
+									{/if}
 								</div>
 								<VoteControl
 									nominationId={entry.id}
@@ -540,7 +573,15 @@
 								<span class="font-mono font-bold text-ink"
 									>Score {signed(winner.votes?.score ?? 0)}</span
 								>
-								<span>picked by {winner.mine ? 'you' : winner.nominatedBy}</span>
+								<span class="flex items-center gap-1.5">
+									<Avatar
+										id={winner.userId}
+										name={winner.nominatedBy}
+										hasAvatar={winner.nominatorHasAvatar}
+										size={22}
+									/>
+									picked by {winner.mine ? 'you' : winner.nominatedBy}
+								</span>
 								<StatusBadge status={winner.movie} />
 							</p>
 							{#if tieText}<p class="mt-3 text-sm">{tieText}</p>{/if}
@@ -639,6 +680,12 @@
 								<ul class="mt-6 divide-y divide-line">
 									{#each data.ratings.rows as r (r.userId)}
 										<li class="flex items-start gap-3 py-2 text-sm">
+											<Avatar
+												id={r.userId}
+												name={r.displayName}
+												hasAvatar={!!r.avatarUrl}
+												size={26}
+											/>
 											<span class="text-sunset" aria-label="{r.score} stars">{stars(r.score)}</span>
 											<span class="min-w-0">
 												<span class="font-semibold">{r.displayName}</span>
@@ -685,12 +732,22 @@
 													100}%; animation-delay: {i * 80}ms"
 											></div>
 										</div>
-										<p class="mt-1 truncate text-xs text-muted">
-											by {entry.mine ? 'you' : entry.nominatedBy} · on {plural(
-												entry.saves,
-												'watchlist'
-											)}
-										</p>
+										<div class="mt-1.5 flex items-center justify-between gap-3">
+											<p class="truncate text-xs text-muted">
+												by {entry.mine ? 'you' : entry.nominatedBy} · on {plural(
+													entry.saves,
+													'watchlist'
+												)}
+											</p>
+											{#if entry.voters?.length}
+												<AvatarStack
+													people={entry.voters}
+													label="Votes on {entry.movie.title}"
+													size={20}
+													max={4}
+												/>
+											{/if}
+										</div>
 									</div>
 								</li>
 							{/each}

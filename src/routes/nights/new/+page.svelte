@@ -102,13 +102,15 @@
 				<label class="flex items-start gap-3">
 					<input
 						type="checkbox"
-						name="resultsHidden"
-						checked={checked('resultsHidden', true)}
+						name="secretBallot"
+						checked={checked('secretBallot', false)}
 						class="mt-1 accent-accent"
 					/>
 					<span>
-						<span class="block text-sm">Hide vote counts until voting closes</span>
-						<span class="block text-xs text-muted">Stops people piling onto the leader.</span>
+						<span class="block text-sm">Secret ballot</span>
+						<span class="block text-xs text-muted"
+							>Scores stay hidden until voting closes, and nobody ever sees who voted for what.</span
+						>
 					</span>
 				</label>
 				<label class="flex items-start gap-3">

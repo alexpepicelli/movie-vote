@@ -27,6 +27,7 @@ export const load: PageServerLoad = ({ locals, depends }) => {
 			maxVotes: view.night.maxVotes,
 			voterCount: view.voterCount,
 			memberCount: view.memberCount,
+			people: view.people,
 			// Sorted by id rather than rank, so the grid doesn't give the winner away.
 			ballot: [...view.entries]
 				.sort((a, b) => a.movie.tmdbId - b.movie.tmdbId)

@@ -1,4 +1,10 @@
-export type SeerrIdentity = { seerrUserId: number; username: string; displayName: string };
+export type SeerrIdentity = {
+	seerrUserId: number;
+	username: string;
+	displayName: string;
+	/** Seerr's avatar for the user: a path on Seerr (e.g. Jellyfin's) or a full URL (Gravatar). */
+	avatar?: string;
+};
 
 export type SeerrLoginResult =
 	| { ok: true; user: SeerrIdentity }
@@ -11,6 +17,7 @@ type SeerrUser = {
 	plexUsername?: string | null;
 	displayName?: string | null;
 	email?: string | null;
+	avatar?: string | null;
 };
 
 const TIMEOUT_MS = 8000;
@@ -70,7 +77,8 @@ function toIdentity(user: SeerrUser, typed: string): SeerrIdentity {
 	return {
 		seerrUserId: user.id,
 		username,
-		displayName: user.displayName || user.jellyfinUsername || user.username || username
+		displayName: user.displayName || user.jellyfinUsername || user.username || username,
+		avatar: user.avatar || undefined
 	};
 }
 

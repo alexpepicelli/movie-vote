@@ -25,7 +25,7 @@ export const actions: Actions = {
 			maxNominations: Number(form.get('maxNominations')),
 			maxVotes: Number(form.get('maxVotes')),
 			selfVoteAllowed: form.get('selfVoteAllowed') === 'on',
-			resultsHidden: form.get('resultsHidden') === 'on'
+			secretBallot: form.get('secretBallot') === 'on'
 		};
 
 		const result = createNight(db, locals.user.id, input);

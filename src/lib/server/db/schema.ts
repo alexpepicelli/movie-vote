@@ -99,7 +99,11 @@ export const nights = sqliteTable('nights', {
 	maxNominations: integer('max_nominations').notNull().default(2),
 	maxVotes: integer('max_votes').notNull().default(3),
 	selfVoteAllowed: integer('self_vote_allowed', { mode: 'boolean' }).notNull().default(false),
-	resultsHidden: integer('results_hidden', { mode: 'boolean' }).notNull().default(true),
+	/**
+	 * Secret ballot: hides scores until voting closes and who voted for what for good.
+	 * (Stored in the old results_hidden column; new nights always set it explicitly.)
+	 */
+	secretBallot: integer('results_hidden', { mode: 'boolean' }).notNull().default(true),
 	winnerTmdbId: integer('winner_tmdb_id').references(() => movies.tmdbId),
 	tiebreakSeed: text('tiebreak_seed'),
 	/** Snapshot of the final ranking, taken when voting closes. */
@@ -148,6 +152,21 @@ export const votes = sqliteTable(
 		createdAt: createdAt()
 	},
 	(t) => [primaryKey({ columns: [t.nightId, t.userId, t.nominationId] })]
+);
+
+/** Explicit "I'm in" taps. Nominating or voting also counts as going (see nights.ts). */
+export const attendance = sqliteTable(
+	'attendance',
+	{
+		nightId: text('night_id')
+			.notNull()
+			.references(() => nights.id, { onDelete: 'cascade' }),
+		userId: text('user_id')
+			.notNull()
+			.references(() => users.id, { onDelete: 'cascade' }),
+		joinedAt: createdAt()
+	},
+	(t) => [primaryKey({ columns: [t.nightId, t.userId] })]
 );
 
 export const ratings = sqliteTable(

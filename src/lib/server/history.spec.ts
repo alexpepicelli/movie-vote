@@ -52,7 +52,7 @@ function closedNight() {
 			maxNominations: 2,
 			maxVotes: 2,
 			selfVoteAllowed: false,
-			resultsHidden: true
+			secretBallot: true
 		},
 		now
 	);

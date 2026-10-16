@@ -32,7 +32,7 @@ describe('database', () => {
 		expect(owner.role).toBe('owner');
 		expect(night.status).toBe('draft');
 		expect(night.maxVotes).toBe(3);
-		expect(night.resultsHidden).toBe(true);
+		expect(night.secretBallot).toBe(true);
 	});
 
 	it('rejects nominating the same movie twice in one night', () => {

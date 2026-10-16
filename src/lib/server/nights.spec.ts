@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { eq } from 'drizzle-orm';
 import { testDb } from './test-db';
-import { movies, nominations, users } from './db/schema';
+import { movies, nights, nominations, users } from './db/schema';
 import {
 	advanceDueNights,
 	cancelNight,
@@ -10,6 +10,8 @@ import {
 	createNight,
 	currentNight,
 	getNight,
+	joinNight,
+	leaveNight,
 	nightView,
 	nominate,
 	nominationPicker,
@@ -33,7 +35,7 @@ const input = (over: Partial<NightInput> = {}): NightInput => ({
 	maxNominations: 2,
 	maxVotes: 2,
 	selfVoteAllowed: false,
-	resultsHidden: true,
+	secretBallot: true,
 	...over
 });
 
@@ -226,6 +228,71 @@ describe('voting', () => {
 		expect(castVote(db, night.id, cat.id, nominationId(db, 1))).toMatchObject({ ok: false });
 		expect(currentNight(db)?.id).toBe(night.id);
 		expect(openNight(db)).toBeUndefined();
+	});
+});
+
+describe('people and visible votes', () => {
+	function voting(secretBallot: boolean) {
+		const s = setup();
+		s.db.update(nights).set({ secretBallot }).where(eq(nights.id, s.night.id)).run();
+		nominate(s.db, s.night.id, s.ben.id, 1);
+		nominate(s.db, s.night.id, s.cat.id, 2);
+		startVoting(s.db, s.night.id, now);
+		return s;
+	}
+	const nominationId = (db: ReturnType<typeof testDb>, tmdbId: number) =>
+		db.select().from(nominations).where(eq(nominations.tmdbId, tmdbId)).get()!.id;
+
+	it('counts people as going once they say so, nominate or vote', () => {
+		const { db, owner, ben, cat, night } = voting(false);
+		const going = () =>
+			Object.fromEntries(
+				nightView(db, getNight(db, night.id)!, owner.id).people.map((p) => [p.displayName, p.going])
+			);
+		expect(going()).toEqual({ owner: false, ben: true, cat: true });
+
+		expect(joinNight(db, night.id, owner.id)).toEqual({ ok: true });
+		expect(going().owner).toBe(true);
+		expect(leaveNight(db, night.id, owner.id)).toEqual({ ok: true });
+		expect(going().owner).toBe(false);
+
+		castVote(db, night.id, owner.id, nominationId(db, 1));
+		expect(going().owner).toBe(true);
+		expect(leaveNight(db, night.id, owner.id)).toMatchObject({ ok: false, error: /already in/ });
+		expect(leaveNight(db, night.id, cat.id)).toMatchObject({ ok: false }); // nominated
+		expect(ben.id).toBeTruthy();
+	});
+
+	it('shows who voted which way on an open ballot', () => {
+		const { db, owner, ben, cat, night } = voting(false);
+		castVote(db, night.id, owner.id, nominationId(db, 1));
+		castVote(db, night.id, cat.id, nominationId(db, 1), -1);
+
+		const view = nightView(db, getNight(db, night.id)!, ben.id);
+		const film1 = view.entries.find((e) => e.movie.tmdbId === 1)!;
+		expect(film1.voters?.map((v) => [v.displayName, v.value])).toEqual([
+			['owner', 1],
+			['cat', -1]
+		]);
+		expect(film1.votes).toEqual({ score: 0, ups: 1, downs: 1 });
+		expect(view.people.find((p) => p.displayName === 'owner')?.voted).toBe(true);
+	});
+
+	it('hides voters and scores on a secret ballot, except your own status', () => {
+		const { db, owner, ben, night } = voting(true);
+		castVote(db, night.id, owner.id, nominationId(db, 2));
+		castVote(db, night.id, ben.id, nominationId(db, 2));
+
+		const view = nightView(db, getNight(db, night.id)!, ben.id);
+		expect(view.entries.every((e) => e.voters === null && e.votes === null)).toBe(true);
+		expect(view.people.find((p) => p.displayName === 'owner')?.voted).toBeNull();
+		expect(view.people.find((p) => p.me)?.voted).toBe(true);
+		expect(view.voterCount).toBe(2);
+
+		closeVoting(db, night.id, now, 'seed');
+		const closed = nightView(db, getNight(db, night.id)!, ben.id);
+		expect(closed.entries.every((e) => e.voters === null)).toBe(true);
+		expect(closed.entries[0].votes?.score).toBe(2);
 	});
 });
 

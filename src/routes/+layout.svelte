@@ -92,7 +92,12 @@
 			</nav>
 
 			<div class="flex items-center gap-2 text-sm whitespace-nowrap">
-				<Avatar id={data.user.id} name={data.user.displayName} size={32} />
+				<Avatar
+					id={data.user.id}
+					name={data.user.displayName}
+					hasAvatar={!!data.user.avatarUrl}
+					size={32}
+				/>
 				<span class="hidden font-semibold lg:inline">{data.user.displayName}</span>
 				<form method="POST" action={resolve('/logout')}>
 					<button

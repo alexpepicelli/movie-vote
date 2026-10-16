@@ -9,6 +9,8 @@ import {
 	castVote,
 	closeVoting,
 	getNight,
+	joinNight,
+	leaveNight,
 	markWatched,
 	MAX_COMMENT,
 	nightRatings,
@@ -112,6 +114,9 @@ export const actions: Actions = {
 			params.id,
 			removeVote(db, params.id, locals.user!.id, await field(request, 'nominationId'))
 		),
+
+	attend: ({ params, locals }) => respond(params.id, joinNight(db, params.id, locals.user!.id)),
+	unattend: ({ params, locals }) => respond(params.id, leaveNight(db, params.id, locals.user!.id)),
 
 	startVoting: ({ params, locals }) => {
 		requireOwner(locals);

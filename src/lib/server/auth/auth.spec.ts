@@ -157,7 +157,7 @@ describe('seerrLogin', () => {
 		const fetchFn = vi.fn(async (input: string | URL | Request) => {
 			if (String(input).endsWith('/auth/jellyfin'))
 				return Response.json(
-					{ id: 3, jellyfinUsername: 'Sam', displayName: 'Sammy' },
+					{ id: 3, jellyfinUsername: 'Sam', displayName: 'Sammy', avatar: '/avatarproxy/sam' },
 					{ headers: { 'set-cookie': 'connect.sid=abc; Path=/; HttpOnly' } }
 				);
 			return new Response(null, { status: 200 });
@@ -167,7 +167,7 @@ describe('seerrLogin', () => {
 
 		expect(result).toEqual({
 			ok: true,
-			user: { seerrUserId: 3, username: 'sam', displayName: 'Sammy' }
+			user: { seerrUserId: 3, username: 'sam', displayName: 'Sammy', avatar: '/avatarproxy/sam' }
 		});
 		await vi.waitFor(() =>
 			expect(fetchFn).toHaveBeenCalledWith(

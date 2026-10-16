@@ -52,11 +52,16 @@ export function upsertSeerrUser(db: Db, identity: SeerrIdentity, ownerSeerrUserI
 					: userCount(tx) === 0;
 		const role = isOwner ? 'owner' : 'member';
 
+		const avatarUrl = identity.avatar ?? null;
 		if (existing) {
-			if (existing.role !== role || existing.displayName !== identity.displayName) {
+			if (
+				existing.role !== role ||
+				existing.displayName !== identity.displayName ||
+				existing.avatarUrl !== avatarUrl
+			) {
 				return tx
 					.update(users)
-					.set({ role, displayName: identity.displayName })
+					.set({ role, displayName: identity.displayName, avatarUrl })
 					.where(eq(users.id, existing.id))
 					.returning()
 					.get();
@@ -71,6 +76,7 @@ export function upsertSeerrUser(db: Db, identity: SeerrIdentity, ownerSeerrUserI
 				seerrUserId: identity.seerrUserId,
 				username: uniqueUsername(tx, identity.username),
 				displayName: identity.displayName,
+				avatarUrl,
 				role
 			})
 			.returning()

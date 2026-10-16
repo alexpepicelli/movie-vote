@@ -1,7 +1,16 @@
 import { randomBytes } from 'node:crypto';
 import { and, asc, avg, count, desc, eq, gte, inArray, lte } from 'drizzle-orm';
 import type { Db } from './db/client';
-import { movies, nights, nominations, ratings, users, votes, watchlist } from './db/schema';
+import {
+	attendance,
+	movies,
+	nights,
+	nominations,
+	ratings,
+	users,
+	votes,
+	watchlist
+} from './db/schema';
 import { scoreOf, tally } from './tally';
 import { mostWanted, watchedMovieIds } from './watchlist';
 
@@ -21,7 +30,7 @@ export type NightInput = {
 	maxNominations: number;
 	maxVotes: number;
 	selfVoteAllowed: boolean;
-	resultsHidden: boolean;
+	secretBallot: boolean;
 };
 
 /** Returns an error message, or null if the settings are valid. */
@@ -324,6 +333,7 @@ export function nightView(db: Db, night: Night, userId: string) {
 			id: nominations.id,
 			userId: nominations.userId,
 			nominatedBy: users.displayName,
+			nominatorAvatar: users.avatarUrl,
 			movie: movies
 		})
 		.from(nominations)
@@ -340,7 +350,7 @@ export function nightView(db: Db, night: Night, userId: string) {
 		.all();
 
 	const finished = night.status === 'closed' || night.status === 'watched';
-	const showCounts = finished || (night.status === 'voting' && !night.resultsHidden);
+	const showCounts = finished || (night.status === 'voting' && !night.secretBallot);
 	const live = new Map<string, { score: number; ups: number; downs: number }>();
 	for (const v of allVotes) {
 		const t = live.get(v.nominationId) ?? { score: 0, ups: 0, downs: 0 };
@@ -357,7 +367,17 @@ export function nightView(db: Db, night: Night, userId: string) {
 	const myVotes = new Map(
 		allVotes.filter((v) => v.userId === userId).map((v) => [v.nominationId, v.value as VoteValue])
 	);
-	const memberCount = db.select({ n: count() }).from(users).get()!.n;
+	const members = db
+		.select({ id: users.id, displayName: users.displayName, avatarUrl: users.avatarUrl })
+		.from(users)
+		.orderBy(asc(users.displayName))
+		.all();
+	const memberCount = members.length;
+	const person = new Map(
+		members.map((m) => [m.id, { id: m.id, displayName: m.displayName, hasAvatar: !!m.avatarUrl }])
+	);
+	// Who voted for what is public unless the night is a secret ballot.
+	const showVoters = !night.secretBallot && night.status !== 'nominating';
 
 	const ranking = night.results?.ranking ?? [];
 	const rankOf = new Map(ranking.map((r) => [r.nominationId, r]));
@@ -365,27 +385,92 @@ export function nightView(db: Db, night: Night, userId: string) {
 	const entries = noms.map((n) => {
 		const ranked = rankOf.get(n.id);
 		const counts = ranked ? scoreOf(ranked) : (live.get(n.id) ?? { score: 0, ups: 0, downs: 0 });
+		const { nominatorAvatar, ...rest } = n;
 		return {
-			...n,
+			...rest,
+			nominatorHasAvatar: !!nominatorAvatar,
 			mine: n.userId === userId,
 			/** This viewer's vote on the film: 1, -1 or null. */
 			myVote: myVotes.get(n.id) ?? null,
 			votedByMe: myVotes.has(n.id),
 			votes: showCounts ? counts : null,
+			/** Who voted on this film and which way; null on a secret ballot. */
+			voters: showVoters
+				? allVotes
+						.filter((v) => v.nominationId === n.id && person.has(v.userId))
+						.map((v) => ({ ...person.get(v.userId)!, value: v.value }))
+						.sort((a, b) => b.value - a.value || a.displayName.localeCompare(b.displayName))
+				: null,
 			saves: ranked?.saves ?? saves.get(n.movie.tmdbId) ?? 0,
 			rank: ranked?.rank ?? null
 		};
 	});
 	if (finished) entries.sort((a, b) => (a.rank ?? 999) - (b.rank ?? 999));
 
+	// Going = said "I'm in", nominated or voted.
+	const joined = new Set(
+		db
+			.select({ userId: attendance.userId })
+			.from(attendance)
+			.where(eq(attendance.nightId, night.id))
+			.all()
+			.map((a) => a.userId)
+	);
+	const nominators = new Set(noms.map((n) => n.userId));
+	const voters = new Set(allVotes.map((v) => v.userId));
+	const people = members
+		.map((m) => {
+			const me = m.id === userId;
+			const voted = voters.has(m.id);
+			return {
+				...person.get(m.id)!,
+				me,
+				going: joined.has(m.id) || nominators.has(m.id) || voted,
+				joined: joined.has(m.id),
+				nominated: nominators.has(m.id),
+				// On a secret ballot only your own vote status is shown.
+				voted: night.secretBallot && !me ? null : voted
+			};
+		})
+		.sort((a, b) => Number(b.going) - Number(a.going) || Number(b.me) - Number(a.me));
+
 	return {
 		night,
 		entries,
+		people,
 		myNominationCount: noms.filter((n) => n.userId === userId).length,
 		myVoteCount: myVotes.size,
-		voterCount: new Set(allVotes.map((v) => v.userId)).size,
+		voterCount: voters.size,
 		memberCount
 	};
+}
+
+/** "I'm in": marks you as coming to a night you haven't nominated or voted on yet. */
+export function joinNight(db: Db, nightId: string, userId: string, now = new Date()): Result {
+	const night = getNight(db, nightId);
+	if (!night || night.status === 'watched') return fail('This movie night is over.');
+	db.insert(attendance).values({ nightId, userId, joinedAt: now }).onConflictDoNothing().run();
+	return OK;
+}
+
+/** Takes back "I'm in". Not possible once you've nominated or voted: that already counts. */
+export function leaveNight(db: Db, nightId: string, userId: string): Result {
+	return db.transaction((tx) => {
+		const night = getNight(tx, nightId);
+		if (!night || night.status === 'watched') return fail('This movie night is over.');
+		const took = (table: typeof nominations | typeof votes) =>
+			tx
+				.select({ n: count() })
+				.from(table)
+				.where(and(eq(table.nightId, nightId), eq(table.userId, userId)))
+				.get()!.n > 0;
+		if (took(nominations) || took(votes))
+			return fail('You’ve nominated or voted on this night, so you’re already in.');
+		tx.delete(attendance)
+			.where(and(eq(attendance.nightId, nightId), eq(attendance.userId, userId)))
+			.run();
+		return OK;
+	});
 }
 
 /**
@@ -460,6 +545,7 @@ export function nightRatings(db: Db, nightId: string, userId: string) {
 		.select({
 			userId: ratings.userId,
 			displayName: users.displayName,
+			avatarUrl: users.avatarUrl,
 			score: ratings.score,
 			comment: ratings.comment
 		})
