@@ -29,7 +29,10 @@ export const actions: Actions = {
 		if (!typed || !password)
 			return fail(400, { username: typed, error: 'Enter your username and password.' });
 
-		const limitKey = `${getClientAddress()}:${typed.toLowerCase()}`;
+		// Behind Cloudflare Tunnel every request comes from cloudflared, so prefer the real client IP
+		// Cloudflare passes along. Only used to key the rate limiter.
+		const ip = request.headers.get('cf-connecting-ip') ?? getClientAddress();
+		const limitKey = `${ip}:${typed.toLowerCase()}`;
 		if (!loginLimiter.attempt(limitKey))
 			return fail(429, { username: typed, error: 'Too many attempts. Try again in 15 minutes.' });
 
