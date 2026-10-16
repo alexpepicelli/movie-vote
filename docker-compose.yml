@@ -1,0 +1,28 @@
+# Example service for your existing media stack. Copy it into your compose file,
+# or run it alongside: `docker compose up -d --build`.
+# Values come from a .env file next to this one (see .env.example).
+services:
+  movie-vote:
+    build: .
+    # image: ghcr.io/<you>/movie-vote:latest   # once CI publishes images
+    container_name: movie-vote
+    restart: unless-stopped
+    environment:
+      ORIGIN: ${ORIGIN} # public URL via Cloudflare Tunnel, e.g. https://movies.example.com
+      SEERR_URL: ${SEERR_URL:-http://seerr:5055}
+      SEERR_API_KEY: ${SEERR_API_KEY}
+      RADARR_URL: ${RADARR_URL:-http://radarr:7878}
+      RADARR_API_KEY: ${RADARR_API_KEY}
+      DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
+      OWNER_SEERR_USER_ID: ${OWNER_SEERR_USER_ID:-}
+      ADDRESS_HEADER: CF-Connecting-IP # real client IP behind Cloudflare
+      XFF_DEPTH: 1
+      TZ: ${TZ:-Australia/Adelaide}
+    volumes:
+      - ./data:/data # SQLite database + backups
+    # ports: ["3000:3000"]  # only if you want LAN access without the tunnel
+    networks: [media]
+
+networks:
+  media:
+    external: true # the network radarr/seerr/cloudflared already share; rename to match
