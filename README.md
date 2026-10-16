@@ -32,7 +32,8 @@ The SQLite database is created at `./data/votarr.db`, and migrations run automat
    It creates `/opt/yams/config/votarr` itself and runs as your YAMS user (`PUID`/`PGID`).
 3. **Expose it through your Cloudflare Tunnel** (Zero Trust → Networks → Tunnels → your tunnel → Public hostnames), e.g. `votarr.<yourdomain>`:
    - cloudflared as a container on the YAMS network → service `http://votarr:3000`
-   - cloudflared on the host → uncomment the `ports:` line and use `http://localhost:3069`
+   - cloudflared on the host (your other routes say `http://localhost:…`) → uncomment the `ports:` lines and use `http://localhost:3069`
+   - locally managed tunnel (`config.yml`, dashboard is read-only) → add `- hostname: votarr.<yourdomain>` / `service: http://localhost:3069` above the `http_status:404` catch-all, run `cloudflared tunnel route dns <tunnel> votarr.<yourdomain>`, then `sudo systemctl restart cloudflared`
 4. **Sign in** at your hostname with your Jellyfin login (you'll be owner).
 5. **Connect your stack** in **Admin → Settings**. The Seerr and Radarr URLs are pre-filled for YAMS (`http://seerr:5055`, `http://radarr:7878`), so just paste each API key (Settings → General in each app), test and save.
 
