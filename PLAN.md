@@ -235,17 +235,109 @@ networks:
 
 ---
 
+## 12. Redesign: "Midnight Movie" (M8–M10)
+
+Picked from the [design canvas](https://claude.ai/artifact/Gwrn9SQae7SQ2a3wfhkJXd) (direction E). The rule: **a clean, ordinary app first; the 80s is the mood, not the mechanics.** Buttons say "Vote", lists are lists. The theme lives in type, colour, a few glows and one big moment (the reveal).
+
+### 12.1 Look and feel
+
+- **Colours** (Tailwind `@theme` tokens in `layout.css`, replacing the current ones): ground `#0d0b1e`, panel `#16132e`, line `#2a2550`, ink `#f1eefe`, muted `#a7a1d0`, hot pink `#ff4f9a` (primary), sunset orange `#ffb347`, cyan `#45e3ff` (live/status only). The sunset gradient (orange → pink) is for the main button, the "Voted" state and the hero title, nowhere else.
+- **Type:** Kanit 800 italic for headings and titles, Manrope for body text, Space Mono for numbers, countdowns and small labels. Bebas Neue goes.
+- **Motion:** content fades up on load (staggered), posters lift on hover, buttons press in, the hero's perspective grid drifts slowly. Everything respects `prefers-reduced-motion`.
+- **Icons:** inline stroke SVGs instead of the emoji currently in the nav and headings.
+- **App icon and favicon** get the new palette.
+
+### 12.2 Pages
+
+| Page                                                             | Change                                                                                                                                                                                                                          |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Home `/`                                                         | Hero: phase label, gradient title, date, a Nominate → Vote → Watch stepper, countdown and "4 / 6 voted" tiles, your votes left, one main button. Then "On the ballot" poster grid and "Most wanted".                            |
+| Night `/nights/[id]`                                             | Ballot as a list: poster, title, year · runtime · genre, one-line synopsis, status, who picked it, the vote controls (§13) and who voted (§14). Segmented "All / Your votes" filter, sticky footer with votes left, undo toast. |
+| Winner reveal                                                    | "Ready for the winner?" → sunset rises over the grid, the title slides in with a chrome shine, then status and the results bars. Replaces `WinnerReveal`'s current animation.                                                   |
+| Discover, Watchlist, Movie, Nights history, Admin, Login, Invite | Re-skinned with the same tokens and components. No layout changes beyond what §15 needs.                                                                                                                                        |
+
+### 12.3 Shared components
+
+`Avatar`, `AvatarStack`, `Poster` (with the status dot), `VoteControl`, `StatusPill`, `Stepper`, `StatTile`, `Toast`, `SegmentedControl`, `SectionHeader`. `MovieCard`, `StatusBadge` and `WinnerReveal` are reworked onto these.
+
+**Decision:** ✅ Approved.
+
+---
+
+## 13. Up and down votes
+
+Each member still gets _K_ votes per night (default 3). Each vote goes on a different film and is either **up (+1)** or **down (−1)**. A film's **score** is ups minus downs, and the highest score wins.
+
+- **One budget:** an up and a down both use one of your _K_ votes, so a downvote costs you an upvote somewhere else.
+- **Your own nomination:** you can't vote on it at all, up or down (the existing per-night setting can still allow it).
+- **Changing your mind:** tap up, tap down or tap again to clear, until voting closes.
+- **Tie-breaks:** score → more upvotes (more people actively wanted it) → more watchlist saves → seeded random draw, as today.
+- **Data:** `votes` gets a `value` column (`1` or `-1`, default `1`), so existing votes become upvotes. `tally()` sums values; `RankedEntry` gains `ups`, `downs` and `score` (stored results from old nights still read, with `score = votes`).
+- **UI:** a compact ▲ / ▼ pair per film. The chosen one fills (pink up, orange down) and shows the film's running score when votes are visible (§14).
+
+**Decision:** ✅ Approved: shared budget, no separate cap on downvotes.
+
+---
+
+## 14. Seeing who voted for what
+
+**Votes are visible by default.** A new night setting, **"Secret ballot"** (off by default), hides them.
+
+| What people see                      | Visible (default) | Secret ballot              |
+| ------------------------------------ | ----------------- | -------------------------- |
+| Live score per film while voting     | Yes               | No                         |
+| Who voted, and up or down            | Yes, live         | Never                      |
+| Who has voted at all ("4 / 6 voted") | Yes               | Yes (count only, no names) |
+| Final scores after close             | Yes               | Yes                        |
+
+- **On each film:** an avatar stack of who voted, with a small ▲/▼ badge on each face. Tap it to expand the list of names.
+- **Live:** votes already go out over SSE (M7), so other people's avatars pop in as they vote.
+- **Data:** this reuses the existing `results_hidden` column, renamed `secret_ballot` with its default flipped to off. Existing nights keep the setting they had. `nightView()` only returns voter identities when the night isn't secret, so names never reach the browser otherwise.
+- **The reveal still happens** on open ballots. The winner may be obvious by then, but the moment is part of the fun.
+
+**Decision:** ✅ Approved.
+
+---
+
+## 15. People and avatars
+
+- **Avatar:** the user's Seerr/Jellyfin picture when there is one, otherwise their initials on a colour derived from their user ID (stable, and different per person). Seerr avatars are saved at sign-in and served through `/avatar/[userId]`, like posters, because Seerr's address is usually internal.
+- **Attendance comes from taking part.** Nominating or voting on a night means you're **going**. Anyone else can tap **I'm in** to say they're coming without voting yet. Everyone who hasn't done any of those counts as **not going or abstaining**. "I'm in" can be taken back while you have no nominations or votes on the night.
+- **"Who's in" strip** on Home and the night page: everyone's avatar in two groups, **Going** and **Not in yet**, with a small badge on each going person for what they've done (nominated, voted, or just "I'm in"). It shows at a glance who's coming and who to nudge.
+- **Data:** a small `attendance(night_id, user_id, joined_at)` table for explicit "I'm in" taps. Going = has an attendance row, a nomination or a vote on the night, so it's never out of sync with what people actually did. Changes go out over SSE like votes.
+- **Avatars appear wherever a person is named:** "picked by" on each film, the voter stacks (§14), ratings and comments, the history page and the header.
+
+**Decision:** ✅ Approved.
+
+---
+
+## 16. Mobile and desktop
+
+Mobile-first, checked at 375 px, 768 px and 1280 px.
+
+- **Phone (< 640 px):** single column, bottom tab bar, sticky ballot footer, 44 px minimum touch targets.
+- **Tablet (640–1023 px):** top nav, two-column poster grids become three to four, the ballot stays a list.
+- **Desktop (≥ 1024 px):** content up to about 1200 px wide. Home becomes two columns (hero and ballot on the left; Who's in, countdown and Most wanted on the right). The night page puts the ballot list next to a sticky side panel with your votes, the people strip and the deadline. The reveal is centred at about 720 px.
+- Hover states only add to what tapping already shows.
+
+**Decision:** ✅ Approved.
+
+---
+
 ## 11. Build milestones
 
-| #     | Milestone    | Deliverable                                                           |
-| ----- | ------------ | --------------------------------------------------------------------- |
-| M0 ✅ | Scaffold     | SvelteKit + Drizzle + SQLite, Dockerfile, compose, CI lint/test       |
-| M1 ✅ | Auth         | Seerr (Jellyfin) login and invite links, sessions, owner role         |
-| M2 ✅ | Metadata     | Seerr search/detail, movie cache, poster proxy, Radarr status poller  |
-| M3 ✅ | Watchlist    | Personal and group "Most Wanted"                                      |
-| M4 ✅ | Movie Nights | Night lifecycle, nominations, voting, tally + tie-break (unit-tested) |
-| M5 ✅ | Results      | Winner reveal, owner request via Seerr, history, ratings              |
-| M6 ⏸  | Discord      | Webhook notifications for each phase plus the "ready" alert           |
-| M7 ✅ | Polish       | SSE live updates, PWA, admin health page, backups                     |
+| #     | Milestone    | Deliverable                                                                  |
+| ----- | ------------ | ---------------------------------------------------------------------------- |
+| M0 ✅ | Scaffold     | SvelteKit + Drizzle + SQLite, Dockerfile, compose, CI lint/test              |
+| M1 ✅ | Auth         | Seerr (Jellyfin) login and invite links, sessions, owner role                |
+| M2 ✅ | Metadata     | Seerr search/detail, movie cache, poster proxy, Radarr status poller         |
+| M3 ✅ | Watchlist    | Personal and group "Most Wanted"                                             |
+| M4 ✅ | Movie Nights | Night lifecycle, nominations, voting, tally + tie-break (unit-tested)        |
+| M5 ✅ | Results      | Winner reveal, owner request via Seerr, history, ratings                     |
+| M6 ⏸  | Discord      | Webhook notifications for each phase plus the "ready" alert                  |
+| M7 ✅ | Polish       | SSE live updates, PWA, admin health page, backups                            |
+| M8    | Redesign     | Midnight Movie theme, shared components, responsive layouts (§12, §16)       |
+| M9    | Voting v2    | Up/down votes, scores, new tie-breaks, migration (§13)                       |
+| M10   | People       | Avatars, attendance, Who's in strip, visible votes, secret ballot (§14, §15) |
 
 **Decision:** ✅ Approved. M0 is done.
