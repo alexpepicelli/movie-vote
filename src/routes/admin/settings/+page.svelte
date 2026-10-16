@@ -153,7 +153,7 @@
 					<button
 						formaction="?/test"
 						disabled={busy !== null}
-						class="rounded-lg border border-line px-4 py-2 text-sm hover:border-accent"
+						class="rounded-lg border border-line px-4 py-2 text-sm enabled:hover:border-accent"
 					>
 						{busy === `${svc.service}-test` ? 'Testing…' : 'Test connection'}
 					</button>

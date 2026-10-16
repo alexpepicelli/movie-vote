@@ -31,28 +31,24 @@
 <div class="group relative">
 	<a
 		href={resolve('/movie/[tmdbId]', { tmdbId: String(movie.tmdbId) })}
-		class="block rounded-xl focus-visible:outline-none"
+		class="block rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
 	>
 		<Poster
 			path={movie.posterPath}
 			title={movie.title}
 			class="transition duration-200 group-hover:-translate-y-1 group-hover:shadow-[0_14px_30px_rgba(0,0,0,0.5)] group-focus-visible:ring-2 group-focus-visible:ring-accent"
 		>
-			<div class="absolute top-2 left-2">
+			<div class="absolute bottom-2 left-2">
 				<StatusBadge {status} compact />
 			</div>
-			{#if wantCount > 1}
-				<div
-					class="absolute bottom-2 left-2 rounded-full bg-screen/85 px-2 py-0.5 text-xs font-bold text-sunset"
-				>
-					{wantCount} want this
-				</div>
-			{/if}
 		</Poster>
 		<p class="mt-2 line-clamp-1 text-sm font-semibold">{movie.title}</p>
 		<p class="text-xs text-muted">
 			{movie.year ?? '—'}{#if movie.rating}&nbsp;· ★ {movie.rating.toFixed(1)}{/if}
 		</p>
+		{#if wantCount > 1}<p class="mt-1 text-xs font-semibold text-sunset">
+				{wantCount} want this
+			</p>{/if}
 	</a>
 	{#if watchlisted !== undefined}
 		<div class="absolute top-2 right-2">

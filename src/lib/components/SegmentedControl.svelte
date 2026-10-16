@@ -16,7 +16,7 @@
 			onclick={item.onclick}
 			class="flex min-h-9 items-center justify-center rounded-lg px-3 text-sm font-semibold transition {item.active
 				? 'bg-line text-ink'
-				: 'text-muted hover:text-ink'}">{item.label}</button
+				: 'text-muted enabled:hover:text-ink'}">{item.label}</button
 		>
 	{/each}
 </div>

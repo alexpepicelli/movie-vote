@@ -8,19 +8,15 @@
 
 	const STYLES = {
 		available: 'text-live',
-		downloading: 'text-sunset',
-		requested: 'text-[#c9b5ff]',
-		none: 'text-muted'
+		downloading: 'text-sunset'
 	} as const;
 	const DOTS = {
 		available: 'bg-live shadow-[0_0_8px_var(--color-live)]',
-		downloading: 'bg-sunset animate-pulse',
-		requested: 'bg-[#c9b5ff]',
-		none: 'bg-muted/60'
+		downloading: 'bg-sunset animate-pulse'
 	} as const;
 </script>
 
-{#if !(compact && s.kind === 'none')}
+{#if s.kind === 'available' || s.kind === 'downloading'}
 	<span
 		class="inline-flex items-center gap-1.5 rounded-full bg-screen/80 px-2 py-0.5 text-xs font-semibold whitespace-nowrap {STYLES[
 			s.kind

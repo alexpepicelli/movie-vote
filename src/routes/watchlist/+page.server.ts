@@ -1,26 +1,15 @@
-import { error, fail } from '@sveltejs/kit';
+import { error, fail, redirect } from '@sveltejs/kit';
 import { db } from '#lib/server/db/index.js';
 import { getSeerr } from '#lib/server/integrations.js';
 import { getMovie } from '#lib/server/movies.js';
-import {
-	addToWatchlist,
-	mostWanted,
-	myWatchlist,
-	removeFromWatchlist
-} from '#lib/server/watchlist.js';
+import { addToWatchlist, removeFromWatchlist } from '#lib/server/watchlist.js';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = ({ locals, url }) => {
+export const load: PageServerLoad = ({ url }) => {
 	const tab = url.searchParams.get('tab') === 'group' ? 'group' : 'mine';
-	const userId = locals.user!.id;
-	return {
-		tab,
-		mine: myWatchlist(db, userId),
-		group: mostWanted(db).map((m) => ({
-			...m,
-			mine: m.wantedBy.some((p) => p.id === userId)
-		}))
-	};
+	const query = new URLSearchParams(url.searchParams);
+	query.set('tab', tab);
+	redirect(303, `/discover?${query}`);
 };
 
 async function tmdbIdFrom(request: Request) {

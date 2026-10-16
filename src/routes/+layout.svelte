@@ -35,8 +35,7 @@
 
 	const links = $derived([
 		{ href: resolve('/'), label: 'Tonight', icon: 'home' as const },
-		{ href: resolve('/discover'), label: 'Discover', icon: 'search' as const },
-		{ href: resolve('/watchlist'), label: 'Watchlist', icon: 'bookmark' as const },
+		{ href: resolve('/discover'), label: 'Movies', icon: 'search' as const },
 		{ href: resolve('/nights'), label: 'Nights', icon: 'calendar' as const },
 		...(data.user?.role === 'owner'
 			? [{ href: resolve('/admin/settings'), label: 'Admin', icon: 'settings' as const }]
@@ -72,7 +71,10 @@
 
 <div class="mx-auto flex min-h-dvh max-w-6xl flex-col px-4 sm:px-6">
 	<header class="flex items-center justify-between gap-4 py-4">
-		<a href={resolve('/')} class="font-display text-2xl leading-none text-sunset">VOTARR</a>
+		<a href={resolve('/')} class="flex items-center gap-2" aria-label="Votarr home">
+			<img src={favicon} alt="" class="size-10" width="40" height="40" />
+			<span class="font-display text-2xl leading-none text-sunset">VOTARR</span>
+		</a>
 
 		{#if data.user}
 			<nav class="hidden items-center gap-1 text-sm sm:flex" aria-label="Main">
@@ -103,7 +105,7 @@
 					<button
 						aria-label="Sign out"
 						title="Sign out"
-						class="grid size-10 place-items-center rounded-lg text-muted transition hover:bg-panel hover:text-ink"
+						class="grid size-10 place-items-center rounded-lg text-muted transition enabled:hover:bg-panel enabled:hover:text-ink"
 					>
 						<Icon name="logout" size={18} />
 					</button>

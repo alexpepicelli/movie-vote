@@ -33,7 +33,7 @@
 			class="size-full object-cover"
 		/>
 	{:else}
-		<div class="flex size-full items-end p-3">
+		<div class="flex size-full items-end p-3 {children ? 'pb-10' : ''}">
 			<span class="font-display text-lg leading-none text-muted">{title}</span>
 		</div>
 	{/if}

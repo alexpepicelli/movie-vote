@@ -46,10 +46,10 @@
 		aria-label={label(1)}
 		title={label(1)}
 		disabled={locked}
-		class="grid size-11 place-items-center rounded-xl transition active:scale-90 disabled:cursor-default disabled:opacity-35 {myVote ===
+		class="grid size-11 place-items-center rounded-xl transition enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-35 {myVote ===
 		1
 			? 'bg-gradient-to-b from-[#ff8a4c] to-accent text-on-accent shadow-[0_0_14px_rgba(255,79,154,0.45)]'
-			: 'border border-line text-ink hover:border-accent hover:text-accent'}"
+			: 'border border-line text-ink enabled:hover:border-accent enabled:hover:text-accent'}"
 	>
 		<Icon name="up" size={22} stroke={2.8} />
 	</button>
@@ -73,10 +73,10 @@
 		aria-label={label(-1)}
 		title={label(-1)}
 		disabled={locked}
-		class="grid size-11 place-items-center rounded-xl transition active:scale-90 disabled:cursor-default disabled:opacity-35 {myVote ===
+		class="grid size-11 place-items-center rounded-xl transition enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-35 {myVote ===
 		-1
 			? 'bg-sunset text-on-accent shadow-[0_0_14px_rgba(255,179,71,0.45)]'
-			: 'border border-line text-ink hover:border-sunset hover:text-sunset'}"
+			: 'border border-line text-ink enabled:hover:border-sunset enabled:hover:text-sunset'}"
 	>
 		<Icon name="down" size={22} stroke={2.8} />
 	</button>

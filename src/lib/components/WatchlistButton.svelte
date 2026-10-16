@@ -41,9 +41,9 @@
 			aria-pressed={on}
 			title={label}
 			disabled={pending}
-			class="grid size-9 place-items-center rounded-full shadow-lg ring-1 backdrop-blur-sm transition active:scale-90 {on
+			class="grid size-11 place-items-center rounded-full shadow-lg ring-1 backdrop-blur-sm transition enabled:active:scale-90 disabled:opacity-50 {on
 				? 'bg-accent text-on-accent ring-accent'
-				: 'bg-screen/85 text-ink ring-white/20 hover:ring-accent'}"
+				: 'bg-screen/85 text-ink ring-white/20 enabled:hover:ring-accent'}"
 		>
 			<Icon name={on ? 'check' : 'plus'} size={18} stroke={2.6} />
 		</button>

@@ -242,7 +242,8 @@
 				>
 					<button
 						disabled={busy !== null}
-						class="min-h-10 text-sm font-semibold text-danger hover:underline">Cancel night</button
+						class="min-h-10 text-sm font-semibold text-danger enabled:hover:underline"
+						>Cancel night</button
 					>
 				</form>
 			</div>
@@ -287,7 +288,8 @@
 											<input type="hidden" name="nominationId" value={entry.id} />
 											<button
 												disabled={busy !== null}
-												class="min-h-8 font-semibold text-danger hover:underline">Withdraw</button
+												class="min-h-8 font-semibold text-danger enabled:hover:underline"
+												>Withdraw</button
 											>
 										</form>
 									{/if}
@@ -343,8 +345,9 @@
 							{@render pickGrid(data.picker.mine.map((m) => ({ movie: m, status: m })))}
 						{:else}
 							<p class="mt-1 text-sm text-muted">
-								Nothing left on your <a href={resolve('/watchlist')} class="link">watchlist</a> to nominate.
-								Try below.
+								Nothing left on your <a href={resolve('/discover?tab=mine')} class="link"
+									>watchlist</a
+								> to nominate. Try below.
 							</p>
 						{/if}
 
@@ -640,8 +643,7 @@
 									>
 										{#each [1, 2, 3, 4, 5] as n (n)}
 											<label
-												class="cursor-pointer transition active:scale-90 {n <=
-												(hoverScore || myScore)
+												class="transition enabled:active:scale-90 {n <= (hoverScore || myScore)
 													? 'text-sunset'
 													: 'text-line'}"
 												onmouseenter={() => (hoverScore = n)}

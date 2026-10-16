@@ -64,7 +64,8 @@
 					</button>
 					<form method="POST" action="?/revoke" use:enhance>
 						<input type="hidden" name="code" value={invite.code} />
-						<button class="min-h-8 font-semibold text-danger hover:underline">Revoke</button>
+						<button class="min-h-8 font-semibold text-danger enabled:hover:underline">Revoke</button
+						>
 					</form>
 				</span>
 			{/if}

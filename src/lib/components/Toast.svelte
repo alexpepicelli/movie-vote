@@ -12,7 +12,7 @@
 		<button
 			type="button"
 			onclick={onaction}
-			class="min-h-10 rounded-lg bg-screen px-4 font-bold text-accent transition active:scale-95"
+			class="min-h-10 rounded-lg bg-screen px-4 font-bold text-accent transition enabled:active:scale-95"
 			>{action}</button
 		>
 	{/if}

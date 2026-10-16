@@ -238,7 +238,7 @@
 
 		{#if data.mostWanted.length}
 			<section class="animate-rise [animation-delay:160ms]">
-				<SectionHeader title="Most wanted" href={resolve('/watchlist?tab=group')} />
+				<SectionHeader title="Most wanted" href={resolve('/discover?tab=group')} />
 				<ol class="mt-3 flex flex-col">
 					{#each data.mostWanted as { movie, wantCount, mine }, i (movie.tmdbId)}
 						<li
@@ -276,7 +276,7 @@
 		{/if}
 
 		<nav class="flex flex-col gap-2 text-sm" aria-label="Shortcuts">
-			<a href={resolve('/watchlist')} class="link">Your watchlist ({data.myCount})</a>
+			<a href={resolve('/discover?tab=mine')} class="link">Your watchlist ({data.myCount})</a>
 			{#if isOwner}
 				<a href={resolve('/admin/settings')} class="text-muted hover:text-ink"
 					>Seerr & Radarr settings</a
