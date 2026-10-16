@@ -7,7 +7,8 @@
 
 	const tabs = [
 		{ href: resolve('/admin/settings'), label: 'Settings' },
-		{ href: resolve('/admin/invites'), label: 'Invites' }
+		{ href: resolve('/admin/invites'), label: 'Invites' },
+		{ href: resolve('/admin/health'), label: 'Health' }
 	];
 </script>
 

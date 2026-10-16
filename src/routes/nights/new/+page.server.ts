@@ -1,5 +1,6 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { db } from '#lib/server/db/index.js';
+import { nightChanged } from '#lib/server/events.js';
 import { createNight, openNight, type NightInput } from '#lib/server/nights.js';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -29,6 +30,7 @@ export const actions: Actions = {
 
 		const result = createNight(db, locals.user.id, input);
 		if (!result.ok) return fail(400, { error: result.error, values: Object.fromEntries(form) });
+		nightChanged(result.night.id);
 		redirect(303, `/nights/${result.night.id}`);
 	}
 };

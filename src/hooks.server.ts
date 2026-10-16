@@ -9,12 +9,20 @@ import {
 } from '#lib/server/auth/sessions.js';
 import { setSessionCookie } from '#lib/server/auth/cookie.js';
 import { getRadarr } from '#lib/server/integrations.js';
-import { startNightScheduler, startStatusPoller } from '#lib/server/poller.js';
+import { DATABASE_URL } from '$app/env/private';
+import { backupDir } from '#lib/server/backups.js';
+import { nightChanged } from '#lib/server/events.js';
+import {
+	startBackupScheduler,
+	startNightScheduler,
+	startStatusPoller
+} from '#lib/server/poller.js';
 
 // Survives dev-server reloads so we don't stack up pollers.
 const globals = globalThis as {
 	__votarrStopPoller?: () => void;
 	__votarrStopScheduler?: () => void;
+	__votarrStopBackups?: () => void;
 };
 
 export const init: ServerInit = () => {
@@ -23,7 +31,10 @@ export const init: ServerInit = () => {
 	globals.__votarrStopPoller?.();
 	globals.__votarrStopPoller = startStatusPoller(db, getRadarr);
 	globals.__votarrStopScheduler?.();
-	globals.__votarrStopScheduler = startNightScheduler(db);
+	globals.__votarrStopScheduler = startNightScheduler(db, (t) => nightChanged(t.nightId));
+	globals.__votarrStopBackups?.();
+	if (DATABASE_URL !== ':memory:')
+		globals.__votarrStopBackups = startBackupScheduler(db, backupDir(DATABASE_URL));
 };
 
 const PUBLIC_PATHS = ['/login', '/healthz'];

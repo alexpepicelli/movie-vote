@@ -100,8 +100,8 @@ Rules:
 
 - **SvelteKit** (adapter-node) for the UI and API routes in one app
 - **SQLite** with **Drizzle ORM** and migrations. No extra DB container; backups are a single file.
-- **Tailwind CSS**, mobile-first (friends will vote from their phones), installable as a PWA
-- **Server-Sent Events** for live updates (new nominations, phase changes, countdown)
+- **Tailwind CSS**, mobile-first (friends will vote from their phones), installable as a PWA (manifest and icons only: no service worker, since Votarr needs the server anyway)
+- **Server-Sent Events** for live updates (new nominations, phase changes, countdown). Events only say which night changed; browsers reload their own data, so hidden tallies never leak
 - **node-cron** in-process for deadlines and Radarr polling
 - **Vitest** for unit tests (vote tallying, tie-breaks) and **Playwright** for a smoke E2E test
 
@@ -217,7 +217,7 @@ networks:
 - Multi-stage Dockerfile on node:22-alpine, runs as non-root, roughly 150 MB image
 - Migrations run automatically on startup
 - `/healthz` checks the DB, Seerr and Radarr
-- Backups: nightly `sqlite3 .backup` into `/config/backups`, keeping 14 days
+- Backups: once a day, SQLite's online backup into `/config/backups`, keeping 14 days (the newest is never pruned). **Admin → Health** lists them and has a "Back up now" button.
 - **Friend access: ✅ your existing Cloudflare Tunnel.** Add a public hostname such as `votarr.<yourdomain>` → `http://votarr:3069`. The `cloudflared` container must be on the same Docker network (or point it at `localhost:3069` if cloudflared runs on the host). Set `ORIGIN` to the public URL so CSRF checks and cookies work. The app's own login protects it, so Cloudflare Access isn't needed (though it can be added).
 - SSE live updates work through Cloudflare Tunnel. The app sends a heartbeat every 30s so idle connections aren't cut.
 
@@ -246,6 +246,6 @@ networks:
 | M4 ✅ | Movie Nights | Night lifecycle, nominations, voting, tally + tie-break (unit-tested) |
 | M5 ✅ | Results      | Winner reveal, owner request via Seerr, history, ratings              |
 | M6 ⏸  | Discord      | Webhook notifications for each phase plus the "ready" alert           |
-| M7    | Polish       | SSE live updates, PWA, admin health page, backups                     |
+| M7 ✅ | Polish       | SSE live updates, PWA, admin health page, backups                     |
 
 **Decision:** ✅ Approved. M0 is done.

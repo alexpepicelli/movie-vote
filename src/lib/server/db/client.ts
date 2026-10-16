@@ -23,6 +23,9 @@ export function openDatabase(path: string): Db {
 /** The database or a transaction on it; helpers accept either. */
 export type Db = BaseSQLiteDatabase<'sync', RunResult, typeof schema>;
 
+/** The underlying better-sqlite3 connection, for things Drizzle doesn't wrap (e.g. backups). */
+export const sqliteClient = (db: Db) => (db as unknown as { $client: Database.Database }).$client;
+
 export function runMigrations(db: Db, migrationsFolder = MIGRATIONS_FOLDER) {
 	migrate(db as Parameters<typeof migrate>[0], { migrationsFolder });
 }

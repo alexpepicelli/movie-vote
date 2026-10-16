@@ -4,8 +4,32 @@
 	import type { LayoutProps } from './$types';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+	import { invalidate } from '$app/navigation';
 
 	let { children, data }: LayoutProps = $props();
+
+	// Live updates: when a night changes, reload the pages that show nights. Debounced so a
+	// burst of votes is one reload; after a reconnect, reload too in case we missed something.
+	const signedIn = $derived(!!data.user);
+	$effect(() => {
+		if (!signedIn) return;
+		let timer: ReturnType<typeof setTimeout> | undefined;
+		const refresh = () => {
+			clearTimeout(timer);
+			timer = setTimeout(() => invalidate('votarr:nights'), 300);
+		};
+		let opened = false;
+		const source = new EventSource(resolve('/events'));
+		source.addEventListener('night', refresh);
+		source.addEventListener('open', () => {
+			if (opened) refresh();
+			opened = true;
+		});
+		return () => {
+			clearTimeout(timer);
+			source.close();
+		};
+	});
 
 	const links = $derived([
 		{ href: resolve('/'), label: 'Home', icon: '🏠' },
@@ -27,7 +51,14 @@
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
-	<meta name="theme-color" content="#1a1a22" />
+	<!-- Installable from the home screen (no service worker: Votarr needs the server anyway). -->
+	<link rel="manifest" href="/manifest.webmanifest" />
+	<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+	<meta name="apple-mobile-web-app-title" content="Votarr" />
+	<meta name="theme-color" content="#15151c" />
 	<title>Votarr</title>
 	<link rel="preconnect" href="https://fonts.googleapis.com" />
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />

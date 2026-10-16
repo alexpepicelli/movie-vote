@@ -1,5 +1,6 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import { db } from '#lib/server/db/index.js';
+import { nightChanged } from '#lib/server/events.js';
 import { getSeerr } from '#lib/server/integrations.js';
 import { getMovie, withCachedStatus } from '#lib/server/movies.js';
 import {
@@ -24,8 +25,9 @@ import { requestMovie } from '#lib/server/requests.js';
 import { SeerrError } from '#lib/server/seerr.js';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ params, locals, url }) => {
-	advanceDueNights(db);
+export const load: PageServerLoad = async ({ params, locals, url, depends }) => {
+	depends('votarr:nights');
+	advanceDueNights(db).forEach((t) => nightChanged(t.nightId));
 	const night = getNight(db, params.id);
 	if (!night) error(404, 'Movie night not found');
 
@@ -70,7 +72,12 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
 const field = async (request: Request, name: string) =>
 	String((await request.formData()).get(name) ?? '');
 
-const respond = (result: Result) => (result.ok ? { ok: true } : fail(400, { error: result.error }));
+/** Tells everyone watching this night to reload when something changed. */
+const respond = (nightId: string, result: Result) => {
+	if (!result.ok) return fail(400, { error: result.error });
+	nightChanged(nightId);
+	return { ok: true };
+};
 
 function requireOwner(locals: App.Locals) {
 	if (locals.user?.role !== 'owner') error(403, 'Only the owner can do that.');
@@ -86,40 +93,47 @@ export const actions: Actions = {
 		} catch {
 			return fail(503, { error: "Can't reach Seerr right now. Try again shortly." });
 		}
-		return respond(nominate(db, params.id, locals.user!.id, tmdbId));
+		return respond(params.id, nominate(db, params.id, locals.user!.id, tmdbId));
 	},
 	withdraw: async ({ request, params, locals }) =>
-		respond(withdraw(db, params.id, await field(request, 'nominationId'), locals.user!)),
+		respond(params.id, withdraw(db, params.id, await field(request, 'nominationId'), locals.user!)),
 
 	vote: async ({ request, params, locals }) =>
-		respond(castVote(db, params.id, locals.user!.id, await field(request, 'nominationId'))),
+		respond(
+			params.id,
+			castVote(db, params.id, locals.user!.id, await field(request, 'nominationId'))
+		),
 	unvote: async ({ request, params, locals }) =>
-		respond(removeVote(db, params.id, locals.user!.id, await field(request, 'nominationId'))),
+		respond(
+			params.id,
+			removeVote(db, params.id, locals.user!.id, await field(request, 'nominationId'))
+		),
 
 	startVoting: ({ params, locals }) => {
 		requireOwner(locals);
-		return respond(startVoting(db, params.id));
+		return respond(params.id, startVoting(db, params.id));
 	},
 	close: ({ params, locals }) => {
 		requireOwner(locals);
-		return respond(closeVoting(db, params.id));
+		return respond(params.id, closeVoting(db, params.id));
 	},
 	request: async ({ params, locals }) => {
 		requireOwner(locals);
 		const night = getNight(db, params.id);
 		if (!night?.winnerTmdbId) return fail(400, { error: 'There’s no winner to request.' });
 		const result = await requestMovie(db, getSeerr(), night.winnerTmdbId, locals.user!.id);
-		return result.ok
-			? { requested: true, already: result.already }
-			: fail(502, { error: result.error });
+		if (!result.ok) return fail(502, { error: result.error });
+		nightChanged(night.id);
+		return { requested: true, already: result.already };
 	},
 	markWatched: ({ params, locals }) => {
 		requireOwner(locals);
-		return respond(markWatched(db, params.id));
+		return respond(params.id, markWatched(db, params.id));
 	},
 	rate: async ({ request, params, locals }) => {
 		const form = await request.formData();
 		return respond(
+			params.id,
 			rate(
 				db,
 				params.id,
@@ -133,6 +147,7 @@ export const actions: Actions = {
 		requireOwner(locals);
 		const result = cancelNight(db, params.id);
 		if (!result.ok) return fail(400, { error: result.error });
+		nightChanged(params.id);
 		redirect(303, '/');
 	}
 };

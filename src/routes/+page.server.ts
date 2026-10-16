@@ -1,12 +1,14 @@
 import { db } from '#lib/server/db/index.js';
+import { nightChanged } from '#lib/server/events.js';
 import { advanceDueNights, currentNight, nightView, ratingPrompt } from '#lib/server/nights.js';
 import { mostWanted, watchlistIds } from '#lib/server/watchlist.js';
 import { getRadarr, getSeerr } from '#lib/server/integrations.js';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = ({ locals }) => {
+export const load: PageServerLoad = ({ locals, depends }) => {
+	depends('votarr:nights');
 	const userId = locals.user!.id;
-	advanceDueNights(db);
+	advanceDueNights(db).forEach((t) => nightChanged(t.nightId));
 	const night = currentNight(db);
 	const view = night ? nightView(db, night, userId) : null;
 	const saved = watchlistIds(db, userId);

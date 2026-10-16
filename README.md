@@ -45,7 +45,7 @@ cd /opt/yams && docker compose -f docker-compose.yaml -f docker-compose.custom.y
 
 **If the image is private:** GitHub publishes new packages as private. Either make it public (GitHub → your profile → Packages → votarr → Package settings → Change visibility), or log the server in once with a token that has `read:packages`: `docker login ghcr.io -u alexpepicelli`.
 
-Use the public hostname rather than the LAN port: sign-in cookies are HTTPS-only. Data (including your saved API keys) lives in `/opt/yams/config/votarr`. Back up that folder and keep it private.
+Use the public hostname rather than the LAN port: sign-in cookies are HTTPS-only. Data (including your saved API keys) lives in `/opt/yams/config/votarr`. Keep that folder private. Votarr copies its database into `backups/` there once a day and keeps 14 days of copies; **Admin → Health** lists them and has a **Back up now** button.
 
 ## Deploy (plain Docker Compose)
 
@@ -56,4 +56,13 @@ Use the public hostname rather than the LAN port: sign-in cookies are HTTPS-only
 5. In Cloudflare Zero Trust → Tunnels → your tunnel → Public hostnames, add `votarr.<yourdomain>` → `http://votarr:3069`.
 6. Sign in, then connect Seerr and Radarr in **Admin → Settings**.
 
-Data lives in `./config` on the host. Back up that folder.
+Data lives in `./config` on the host, with daily database copies in `./config/backups` (see **Admin → Health**).
+
+## Using it on a phone
+
+Votarr can be added to the home screen and then opens full-screen like an app:
+
+- **Android (Chrome):** menu ⋮ → **Install app** (or **Add to Home screen**).
+- **iPhone (Safari):** Share → **Add to Home Screen**. iOS never shows an install prompt, so friends need to do this themselves.
+
+Live updates: open pages refresh themselves when someone nominates, votes, or a night changes phase.
