@@ -8,6 +8,10 @@ import {
 	castVote,
 	closeVoting,
 	getNight,
+	markWatched,
+	MAX_COMMENT,
+	nightRatings,
+	rate,
 	nightView,
 	nominate,
 	nominationPicker,
@@ -16,6 +20,7 @@ import {
 	withdraw,
 	type Result
 } from '#lib/server/nights.js';
+import { requestMovie } from '#lib/server/requests.js';
 import { SeerrError } from '#lib/server/seerr.js';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -26,7 +31,14 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
 
 	const userId = locals.user!.id;
 	const view = nightView(db, night, userId);
-	if (night.status !== 'nominating') return { ...view, picker: null };
+	if (night.status !== 'nominating')
+		return {
+			...view,
+			picker: null,
+			ratings: night.status === 'watched' ? nightRatings(db, night.id, userId) : null,
+			canRequest: !!seerr,
+			maxComment: MAX_COMMENT
+		};
 
 	// Nominating: offer your watchlist first, then what friends want, then search.
 	const { mine, group, nominated } = nominationPicker(db, night.id, userId);
@@ -45,7 +57,13 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
 			search = { results: [], error: e instanceof SeerrError ? e.message : 'Search failed.' };
 		}
 	}
-	return { ...view, picker: { mine, group, q, search, searchEnabled: !!seerr } };
+	return {
+		...view,
+		picker: { mine, group, q, search, searchEnabled: !!seerr },
+		ratings: null,
+		canRequest: !!seerr,
+		maxComment: MAX_COMMENT
+	};
 };
 
 const field = async (request: Request, name: string) =>
@@ -83,6 +101,31 @@ export const actions: Actions = {
 	close: ({ params, locals }) => {
 		requireOwner(locals);
 		return respond(closeVoting(db, params.id));
+	},
+	request: async ({ params, locals }) => {
+		requireOwner(locals);
+		const night = getNight(db, params.id);
+		if (!night?.winnerTmdbId) return fail(400, { error: 'There’s no winner to request.' });
+		const result = await requestMovie(db, seerr, night.winnerTmdbId, locals.user!.id);
+		return result.ok
+			? { requested: true, already: result.already }
+			: fail(502, { error: result.error });
+	},
+	markWatched: ({ params, locals }) => {
+		requireOwner(locals);
+		return respond(markWatched(db, params.id));
+	},
+	rate: async ({ request, params, locals }) => {
+		const form = await request.formData();
+		return respond(
+			rate(
+				db,
+				params.id,
+				locals.user!.id,
+				Number(form.get('score')),
+				String(form.get('comment') ?? '')
+			)
+		);
 	},
 	cancel: ({ params, locals }) => {
 		requireOwner(locals);

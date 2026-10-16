@@ -11,6 +11,7 @@
 		{ href: resolve('/'), label: 'Home', icon: '🏠' },
 		{ href: resolve('/discover'), label: 'Discover', icon: '🔎' },
 		{ href: resolve('/watchlist'), label: 'Watchlist', icon: '🍿' },
+		{ href: resolve('/nights'), label: 'Nights', icon: '🎟️' },
 		...(data.user?.role === 'owner'
 			? [{ href: resolve('/admin/invites'), label: 'Invites', icon: '✉️' }]
 			: [])

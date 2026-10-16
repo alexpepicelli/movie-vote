@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto';
-import { and, asc, count, desc, eq, inArray, lte } from 'drizzle-orm';
+import { and, asc, avg, count, desc, eq, gte, inArray, lte } from 'drizzle-orm';
 import type { Db } from './db/client';
-import { movies, nights, nominations, users, votes, watchlist } from './db/schema';
+import { movies, nights, nominations, ratings, users, votes, watchlist } from './db/schema';
 import { tally } from './tally';
 import { mostWanted, watchedMovieIds } from './watchlist';
 
@@ -313,8 +313,8 @@ export function nightView(db: Db, night: Night, userId: string) {
 		.where(eq(votes.nightId, night.id))
 		.all();
 
-	const showCounts =
-		night.status === 'closed' || (night.status === 'voting' && !night.resultsHidden);
+	const finished = night.status === 'closed' || night.status === 'watched';
+	const showCounts = finished || (night.status === 'voting' && !night.resultsHidden);
 	const voteCounts = new Map<string, number>();
 	for (const v of allVotes)
 		voteCounts.set(v.nominationId, (voteCounts.get(v.nominationId) ?? 0) + 1);
@@ -337,7 +337,7 @@ export function nightView(db: Db, night: Night, userId: string) {
 		saves: rankOf.get(n.id)?.saves ?? saves.get(n.movie.tmdbId) ?? 0,
 		rank: rankOf.get(n.id)?.rank ?? null
 	}));
-	if (night.status === 'closed') entries.sort((a, b) => (a.rank ?? 999) - (b.rank ?? 999));
+	if (finished) entries.sort((a, b) => (a.rank ?? 999) - (b.rank ?? 999));
 
 	return {
 		night,
@@ -381,4 +381,108 @@ export function nominationPicker(db: Db, nightId: string, userId: string) {
 		.slice(0, 12);
 
 	return { mine, group, nominated };
+}
+
+/** Owner marks the night as watched once the movie's been seen; friends can then rate it. */
+export function markWatched(db: Db, nightId: string, now = new Date()): Result {
+	const night = getNight(db, nightId);
+	if (night?.status !== 'closed') return fail('Only a night with results can be marked watched.');
+	if (!night.winnerTmdbId) return fail('There was no winner to watch.');
+	db.update(nights).set({ status: 'watched', watchedAt: now }).where(eq(nights.id, nightId)).run();
+	return OK;
+}
+
+export const MAX_COMMENT = 200;
+
+export function rate(
+	db: Db,
+	nightId: string,
+	userId: string,
+	score: number,
+	comment: string | null
+): Result {
+	const night = getNight(db, nightId);
+	if (night?.status !== 'watched') return fail('You can rate it once the night is marked watched.');
+	if (!Number.isInteger(score) || score < 1 || score > 5) return fail('Pick 1 to 5 stars.');
+	const text = comment?.trim().slice(0, MAX_COMMENT) || null;
+
+	db.insert(ratings)
+		.values({ nightId, userId, score, comment: text })
+		.onConflictDoUpdate({
+			target: [ratings.nightId, ratings.userId],
+			set: { score, comment: text }
+		})
+		.run();
+	return OK;
+}
+
+export function nightRatings(db: Db, nightId: string, userId: string) {
+	const rows = db
+		.select({
+			userId: ratings.userId,
+			displayName: users.displayName,
+			score: ratings.score,
+			comment: ratings.comment
+		})
+		.from(ratings)
+		.innerJoin(users, eq(users.id, ratings.userId))
+		.where(eq(ratings.nightId, nightId))
+		.orderBy(desc(ratings.createdAt))
+		.all();
+	const average = rows.length ? rows.reduce((s, r) => s + r.score, 0) / rows.length : null;
+	return { rows, average, mine: rows.find((r) => r.userId === userId) ?? null };
+}
+
+/** Past nights (results in or watched), newest first, with winner and average rating. */
+export function pastNights(db: Db) {
+	const avgScore = avg(ratings.score);
+	const rows = db
+		.select({
+			id: nights.id,
+			title: nights.title,
+			status: nights.status,
+			scheduledFor: nights.scheduledFor,
+			closedAt: nights.closedAt,
+			watchedAt: nights.watchedAt,
+			winner: movies,
+			averageRating: avgScore,
+			ratingCount: count(ratings.userId)
+		})
+		.from(nights)
+		.leftJoin(movies, eq(movies.tmdbId, nights.winnerTmdbId))
+		.leftJoin(ratings, eq(ratings.nightId, nights.id))
+		.where(inArray(nights.status, ['closed', 'watched']))
+		.groupBy(nights.id)
+		.orderBy(desc(nights.closedAt))
+		.all();
+	return rows.map((r) => ({
+		...r,
+		averageRating: r.averageRating === null ? null : Number(r.averageRating),
+		nominationCount: db
+			.select({ n: count() })
+			.from(nominations)
+			.where(eq(nominations.nightId, r.id))
+			.get()!.n
+	}));
+}
+
+const RATING_PROMPT_DAYS = 7;
+
+/** The most recently watched night (within a week) that this user hasn't rated yet. */
+export function ratingPrompt(db: Db, userId: string, now = new Date()) {
+	const since = new Date(now.getTime() - RATING_PROMPT_DAYS * 24 * 3600_000);
+	const night = db
+		.select({ id: nights.id, title: nights.title, winner: movies })
+		.from(nights)
+		.innerJoin(movies, eq(movies.tmdbId, nights.winnerTmdbId))
+		.where(and(eq(nights.status, 'watched'), gte(nights.watchedAt, since)))
+		.orderBy(desc(nights.watchedAt))
+		.get();
+	if (!night) return null;
+	const rated = db
+		.select({ s: ratings.score })
+		.from(ratings)
+		.where(and(eq(ratings.nightId, night.id), eq(ratings.userId, userId)))
+		.get();
+	return rated ? null : night;
 }

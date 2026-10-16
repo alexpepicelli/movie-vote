@@ -106,6 +106,7 @@ export const nights = sqliteTable('nights', {
 	results: text('results', { mode: 'json' }).$type<TallyResult>(),
 	votingStartedAt: integer('voting_started_at', { mode: 'timestamp' }),
 	closedAt: integer('closed_at', { mode: 'timestamp' }),
+	watchedAt: integer('watched_at', { mode: 'timestamp' }),
 	createdBy: text('created_by')
 		.notNull()
 		.references(() => users.id),
@@ -156,7 +157,7 @@ export const ratings = sqliteTable(
 		userId: text('user_id')
 			.notNull()
 			.references(() => users.id, { onDelete: 'cascade' }),
-		score: integer('score').notNull(), // 1–10
+		score: integer('score').notNull(), // 1–5 stars
 		comment: text('comment'),
 		createdAt: createdAt()
 	},

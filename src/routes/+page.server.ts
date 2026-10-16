@@ -1,5 +1,5 @@
 import { db } from '#lib/server/db/index.js';
-import { advanceDueNights, currentNight, nightView } from '#lib/server/nights.js';
+import { advanceDueNights, currentNight, nightView, ratingPrompt } from '#lib/server/nights.js';
 import { mostWanted, watchlistIds } from '#lib/server/watchlist.js';
 import type { PageServerLoad } from './$types';
 
@@ -23,9 +23,14 @@ export const load: PageServerLoad = ({ locals }) => {
 			votesLeft: view.night.maxVotes - view.myVoteCount,
 			voterCount: view.voterCount,
 			memberCount: view.memberCount,
-			posters: view.entries.slice(0, 5).map((e) => e.movie.posterPath),
+			// Sorted by id rather than rank, so the fan of posters doesn't give the winner away.
+			posters: [...view.entries]
+				.sort((a, b) => a.movie.tmdbId - b.movie.tmdbId)
+				.slice(0, 5)
+				.map((e) => e.movie.posterPath),
 			winner: view.night.status === 'closed' ? (view.entries[0]?.movie ?? null) : null
 		},
+		rateNight: ratingPrompt(db, userId),
 		myCount: saved.size,
 		mostWanted: mostWanted(db, 10).map((m) => ({
 			movie: m.movie,

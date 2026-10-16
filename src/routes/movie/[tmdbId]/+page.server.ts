@@ -1,11 +1,12 @@
-import { error } from '@sveltejs/kit';
+import { error, fail } from '@sveltejs/kit';
 import { eq } from 'drizzle-orm';
 import { db } from '#lib/server/db/index.js';
 import { movies } from '#lib/server/db/schema.js';
 import { radarr, seerr } from '#lib/server/integrations.js';
 import { getMovie, refreshStatuses, statusIsStale } from '#lib/server/movies.js';
+import { requestMovie } from '#lib/server/requests.js';
 import { wantedBy } from '#lib/server/watchlist.js';
-import type { PageServerLoad } from './$types';
+import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
 	const tmdbId = Number(params.tmdbId);
@@ -29,6 +30,17 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	return {
 		movie,
 		wanters,
-		onMyWatchlist: wanters.some((p) => p.id === locals.user!.id)
+		onMyWatchlist: wanters.some((p) => p.id === locals.user!.id),
+		canRequest: !!seerr
 	};
+};
+
+export const actions: Actions = {
+	request: async ({ params, locals }) => {
+		if (locals.user?.role !== 'owner') error(403, 'Only the owner can request movies.');
+		const result = await requestMovie(db, seerr, Number(params.tmdbId), locals.user.id);
+		return result.ok
+			? { requested: true, already: result.already }
+			: fail(502, { error: result.error });
+	}
 };

@@ -227,7 +227,7 @@ networks:
 | M2 ✅ | Metadata     | Seerr search/detail, movie cache, poster proxy, Radarr status poller  |
 | M3 ✅ | Watchlist    | Personal and group "Most Wanted"                                      |
 | M4 ✅ | Movie Nights | Night lifecycle, nominations, voting, tally + tie-break (unit-tested) |
-| M5    | Results      | Winner reveal, owner request via Seerr, history, ratings              |
+| M5 ✅ | Results      | Winner reveal, owner request via Seerr, history, ratings              |
 | M6    | Discord      | Webhook notifications for each phase plus the "ready" alert           |
 | M7    | Polish       | SSE live updates, PWA, admin health page, backups                     |
 

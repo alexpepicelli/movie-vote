@@ -7,7 +7,8 @@
 	import LocalTime from '#lib/components/LocalTime.svelte';
 	import MovieCard from '#lib/components/MovieCard.svelte';
 	import StatusBadge from '#lib/components/StatusBadge.svelte';
-	import { cardMovie, imageUrl, type StatusInput } from '#lib/status.js';
+	import WinnerReveal from '#lib/components/WinnerReveal.svelte';
+	import { cardMovie, displayStatus, imageUrl, type StatusInput } from '#lib/status.js';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
@@ -28,7 +29,7 @@
 	const phaseIndex = $derived(
 		Math.max(
 			0,
-			PHASES.findIndex((p) => p.key === night.status)
+			PHASES.findIndex((p) => p.key === (night.status === 'watched' ? 'closed' : night.status))
 		)
 	);
 
@@ -65,7 +66,16 @@
 
 	const titleOf = (tmdbId: number) =>
 		data.entries.find((e) => e.movie.tmdbId === tmdbId)?.movie.title ?? 'another film';
-	const winner = $derived(night.status === 'closed' ? data.entries[0] : undefined);
+	const finished = $derived(night.status === 'closed' || night.status === 'watched');
+	const winner = $derived(finished ? data.entries[0] : undefined);
+	const revealPosters = $derived(
+		data.entries.flatMap((e) => imageUrl(e.movie.posterPath, 'w342') ?? [])
+	);
+	const winnerStatus = $derived(winner ? displayStatus(winner.movie) : null);
+
+	let hoverScore = $state(0);
+	const myScore = $derived(data.ratings?.mine?.score ?? 0);
+	const stars = (n: number) => '★'.repeat(Math.round(n)) + '☆'.repeat(5 - Math.round(n));
 	const tieBreak = $derived(night.results?.tieBreak);
 	const tieText = $derived.by(() => {
 		if (!winner || !tieBreak || tieBreak.by === 'none') return null;
@@ -119,7 +129,7 @@
 		</p>
 	{/if}
 
-	{#if isOwner}
+	{#if isOwner && night.status !== 'watched'}
 		<div class="mt-4 flex flex-wrap gap-3 rounded-xl border border-dashed border-line p-3 text-sm">
 			<span class="self-center text-muted">Owner:</span>
 			{#if night.status === 'nominating'}
@@ -147,6 +157,12 @@
 					<button disabled={busy !== null} class="btn w-auto px-4 py-1.5"
 						>Close voting & reveal</button
 					>
+				</form>
+			{:else if night.status === 'closed' && winner}
+				<form method="POST" action="?/markWatched" use:enhance={keep('markWatched')}>
+					<button disabled={busy !== null} class="btn w-auto px-4 py-1.5">
+						We watched it: open ratings
+					</button>
 				</form>
 			{/if}
 			<form
@@ -353,78 +369,200 @@
 	</section>
 
 	<!-- ───────────── Results ───────────── -->
-{:else if night.status === 'closed'}
+{:else if finished}
 	{#if winner}
-		<section
-			class="mt-8 flex flex-col gap-6 rounded-2xl border border-marquee/40 bg-gradient-to-br from-marquee/10 to-transparent p-5 sm:flex-row sm:p-8"
+		<WinnerReveal
+			storageKey="mv-revealed-{night.id}"
+			posters={revealPosters}
+			count={data.entries.length}
 		>
-			<a
-				href={resolve('/movie/[tmdbId]', { tmdbId: String(winner.movie.tmdbId) })}
-				class="w-40 shrink-0 self-center sm:w-48"
+			<section
+				class="reveal mt-8 flex flex-col gap-6 rounded-2xl border border-marquee/40 bg-gradient-to-br from-marquee/10 to-transparent p-5 sm:flex-row sm:p-8"
 			>
-				{#if imageUrl(winner.movie.posterPath, 'w342')}
-					<img
-						src={imageUrl(winner.movie.posterPath, 'w342')}
-						alt="{winner.movie.title} poster"
-						class="w-full rounded-xl shadow-2xl ring-1 ring-marquee/50"
-					/>
-				{/if}
-			</a>
-			<div class="min-w-0 self-center">
-				<p class="text-xs tracking-widest text-marquee uppercase">🏆 The winner is</p>
-				<h2 class="mt-1 font-display text-4xl leading-none tracking-wide sm:text-5xl">
-					{winner.movie.title}
-				</h2>
-				<p class="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted">
-					<span class="text-ink">{winner.votes} vote{winner.votes === 1 ? '' : 's'}</span>
-					<span>nominated by {winner.mine ? 'you' : winner.nominatedBy}</span>
-					<StatusBadge status={winner.movie} />
-				</p>
-				{#if tieText}<p class="mt-3 text-sm">{tieText}</p>{/if}
-			</div>
-		</section>
+				<a
+					href={resolve('/movie/[tmdbId]', { tmdbId: String(winner.movie.tmdbId) })}
+					class="w-40 shrink-0 self-center sm:w-48"
+				>
+					{#if imageUrl(winner.movie.posterPath, 'w342')}
+						<img
+							src={imageUrl(winner.movie.posterPath, 'w342')}
+							alt="{winner.movie.title} poster"
+							class="w-full rounded-xl shadow-2xl ring-1 ring-marquee/50"
+						/>
+					{/if}
+				</a>
+				<div class="min-w-0 self-center">
+					<p class="text-xs tracking-widest text-marquee uppercase">
+						🏆 {night.status === 'watched' ? 'We watched' : 'The winner is'}
+					</p>
+					<h2 class="mt-1 font-display text-4xl leading-none tracking-wide sm:text-5xl">
+						{winner.movie.title}
+					</h2>
+					<p class="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted">
+						<span class="text-ink">{winner.votes} vote{winner.votes === 1 ? '' : 's'}</span>
+						<span>nominated by {winner.mine ? 'you' : winner.nominatedBy}</span>
+						<StatusBadge status={winner.movie} />
+					</p>
+					{#if tieText}<p class="mt-3 text-sm">{tieText}</p>{/if}
 
-		<section class="mt-8">
-			<h2 class="font-display text-2xl tracking-wide">Full results</h2>
-			<ol class="mt-3 divide-y divide-line rounded-xl border border-line bg-panel">
-				{#each data.entries as entry (entry.id)}
-					<li class="flex items-center gap-3 p-3">
-						<span class="w-6 text-center font-display text-xl text-muted">{entry.rank}</span>
-						{#if imageUrl(entry.movie.posterPath, 'w185')}
-							<img
-								src={imageUrl(entry.movie.posterPath, 'w185')}
-								alt=""
-								class="h-14 w-10 rounded object-cover"
-							/>
-						{/if}
-						<div class="min-w-0 flex-1">
-							<a
-								href={resolve('/movie/[tmdbId]', { tmdbId: String(entry.movie.tmdbId) })}
-								class="block truncate font-medium hover:underline">{entry.movie.title}</a
+					{#if isOwner && night.status === 'closed' && winnerStatus?.kind === 'none'}
+						<form method="POST" action="?/request" use:enhance={keep('request')} class="mt-4">
+							<button
+								disabled={busy !== null || !data.canRequest}
+								class="btn w-auto px-4"
+								title={data.canRequest ? undefined : 'Seerr isn’t connected'}
 							>
-							<div class="mt-1 h-1.5 overflow-hidden rounded-full bg-screen">
-								<div
-									class="h-full rounded-full {entry.rank === 1 ? 'bg-marquee' : 'bg-muted/50'}"
-									style="width: {((entry.votes ?? 0) / maxVotes) * 100}%"
-								></div>
-							</div>
-							<p class="mt-1 truncate text-xs text-muted">
-								by {entry.mine ? 'you' : entry.nominatedBy} · on {entry.saves} watchlist{entry.saves ===
-								1
-									? ''
-									: 's'}
+								{busy === 'request' ? 'Requesting…' : '⬇ Request via Seerr'}
+							</button>
+							<p class="mt-1 text-xs text-muted">
+								Only you can see this. Seerr sends it to Radarr.
 							</p>
-						</div>
-						<span class="text-sm tabular-nums"
-							>{entry.votes} vote{entry.votes === 1 ? '' : 's'}</span
-						>
-					</li>
-				{/each}
-			</ol>
-		</section>
+						</form>
+					{:else if form && 'requested' in form && form.requested}
+						<p class="mt-4 text-sm text-emerald-300" role="status">
+							{form.already
+								? 'Already requested in Seerr.'
+								: 'Requested! Radarr will pick it up shortly.'}
+						</p>
+					{/if}
+				</div>
+			</section>
+
+			{#if night.status === 'watched' && data.ratings}
+				<section class="mt-8 rounded-2xl border border-line bg-panel p-5 sm:p-6">
+					<div class="flex flex-wrap items-end justify-between gap-2">
+						<h2 class="font-display text-2xl tracking-wide">How was it?</h2>
+						{#if data.ratings.average !== null}
+							<p class="text-sm">
+								<span class="text-marquee" aria-hidden="true">{stars(data.ratings.average)}</span>
+								<span class="text-muted">
+									{data.ratings.average.toFixed(1)} from {data.ratings.rows.length}
+									{data.ratings.rows.length === 1 ? 'person' : 'people'}
+								</span>
+							</p>
+						{/if}
+					</div>
+
+					<form method="POST" action="?/rate" use:enhance={keep('rate')} class="mt-4 space-y-3">
+						<fieldset>
+							<legend class="text-sm text-muted">
+								{data.ratings.mine ? 'Your rating (tap to change)' : 'Your rating'}
+							</legend>
+							<div
+								class="mt-1 flex gap-1 text-3xl"
+								role="presentation"
+								onmouseleave={() => (hoverScore = 0)}
+							>
+								{#each [1, 2, 3, 4, 5] as n (n)}
+									<label
+										class="cursor-pointer transition active:scale-90 {n <= (hoverScore || myScore)
+											? 'text-marquee'
+											: 'text-line'}"
+										onmouseenter={() => (hoverScore = n)}
+									>
+										<input
+											type="radio"
+											name="score"
+											value={n}
+											checked={myScore === n}
+											required
+											class="sr-only"
+											onchange={(e) => e.currentTarget.form?.requestSubmit()}
+										/>
+										<span aria-hidden="true">★</span>
+										<span class="sr-only">{n} star{n === 1 ? '' : 's'}</span>
+									</label>
+								{/each}
+							</div>
+						</fieldset>
+						<label class="block">
+							<span class="text-sm text-muted">Comment (optional)</span>
+							<input
+								name="comment"
+								maxlength={data.maxComment}
+								value={data.ratings.mine?.comment ?? ''}
+								placeholder="One-line review…"
+								class="field"
+							/>
+						</label>
+						<button disabled={busy !== null} class="btn w-auto px-4">
+							{data.ratings.mine ? 'Update rating' : 'Save rating'}
+						</button>
+					</form>
+
+					{#if data.ratings.rows.length}
+						<ul class="mt-6 divide-y divide-line">
+							{#each data.ratings.rows as r (r.userId)}
+								<li class="flex items-start gap-3 py-2 text-sm">
+									<span class="text-marquee" aria-label="{r.score} stars">{stars(r.score)}</span>
+									<span class="min-w-0">
+										<span class="font-medium">{r.displayName}</span>
+										{#if r.comment}<span class="text-muted">: “{r.comment}”</span>{/if}
+									</span>
+								</li>
+							{/each}
+						</ul>
+					{/if}
+				</section>
+			{/if}
+
+			<section class="mt-8">
+				<h2 class="font-display text-2xl tracking-wide">Full results</h2>
+				<ol class="mt-3 divide-y divide-line rounded-xl border border-line bg-panel">
+					{#each data.entries as entry (entry.id)}
+						<li class="flex items-center gap-3 p-3">
+							<span class="w-6 text-center font-display text-xl text-muted">{entry.rank}</span>
+							{#if imageUrl(entry.movie.posterPath, 'w185')}
+								<img
+									src={imageUrl(entry.movie.posterPath, 'w185')}
+									alt=""
+									class="h-14 w-10 rounded object-cover"
+								/>
+							{/if}
+							<div class="min-w-0 flex-1">
+								<a
+									href={resolve('/movie/[tmdbId]', { tmdbId: String(entry.movie.tmdbId) })}
+									class="block truncate font-medium hover:underline">{entry.movie.title}</a
+								>
+								<div class="mt-1 h-1.5 overflow-hidden rounded-full bg-screen">
+									<div
+										class="h-full rounded-full {entry.rank === 1 ? 'bg-marquee' : 'bg-muted/50'}"
+										style="width: {((entry.votes ?? 0) / maxVotes) * 100}%"
+									></div>
+								</div>
+								<p class="mt-1 truncate text-xs text-muted">
+									by {entry.mine ? 'you' : entry.nominatedBy} · on {entry.saves}
+									watchlist{entry.saves === 1 ? '' : 's'}
+								</p>
+							</div>
+							<span class="text-sm tabular-nums"
+								>{entry.votes} vote{entry.votes === 1 ? '' : 's'}</span
+							>
+						</li>
+					{/each}
+				</ol>
+			</section>
+		</WinnerReveal>
 	{:else}
 		<p class="mt-8 rounded-xl border border-line bg-panel p-6 text-muted">
 			Voting closed with nothing nominated, so there's no winner this time.
 		</p>
 	{/if}
 {/if}
+
+<style>
+	.reveal {
+		animation: pop 0.6s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+	}
+	@keyframes pop {
+		from {
+			opacity: 0;
+			transform: scale(0.92) translateY(8px);
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.reveal {
+			animation: none;
+		}
+	}
+</style>

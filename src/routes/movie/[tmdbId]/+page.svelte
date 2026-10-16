@@ -1,10 +1,12 @@
 <script lang="ts">
 	import StatusBadge from '#lib/components/StatusBadge.svelte';
 	import WatchlistButton from '#lib/components/WatchlistButton.svelte';
-	import { imageUrl } from '#lib/status.js';
+	import { enhance } from '$app/forms';
+	import { displayStatus, imageUrl } from '#lib/status.js';
 	import type { PageProps } from './$types';
 
-	let { data }: PageProps = $props();
+	let { data, form }: PageProps = $props();
+	let requesting = $state(false);
 	const m = $derived(data.movie);
 	const backdrop = $derived(imageUrl(m.backdropPath, 'w1280'));
 	const poster = $derived(imageUrl(m.posterPath, 'w342'));
@@ -59,6 +61,26 @@
 
 			<div class="mt-6 flex flex-wrap items-start gap-3">
 				<WatchlistButton tmdbId={m.tmdbId} added={data.onMyWatchlist} />
+				{#if data.user?.role === 'owner' && data.canRequest && displayStatus(m).kind === 'none'}
+					<form
+						method="POST"
+						action="?/request"
+						use:enhance={() => {
+							requesting = true;
+							return async ({ update }) => {
+								await update({ reset: false, navigate: false });
+								requesting = false;
+							};
+						}}
+					>
+						<button
+							disabled={requesting}
+							class="inline-flex items-center gap-2 rounded-lg border border-line px-4 py-2 text-sm hover:border-marquee"
+						>
+							{requesting ? 'Requesting…' : '⬇ Request via Seerr'}
+						</button>
+					</form>
+				{/if}
 				{#if m.trailerKey}
 					<a
 						href="https://www.youtube.com/watch?v={encodeURIComponent(m.trailerKey)}"
@@ -70,6 +92,16 @@
 					</a>
 				{/if}
 			</div>
+
+			{#if form?.error}
+				<p class="mt-3 text-sm text-curtain" role="alert">{form.error}</p>
+			{:else if form?.requested}
+				<p class="mt-3 text-sm text-emerald-300" role="status">
+					{form.already
+						? 'Already requested in Seerr.'
+						: 'Requested! Radarr will pick it up shortly.'}
+				</p>
+			{/if}
 
 			{#if data.wanters.length}
 				<p class="mt-4 text-sm text-muted">

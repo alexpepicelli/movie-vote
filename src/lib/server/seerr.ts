@@ -95,6 +95,34 @@ export class SeerrClient {
 		};
 	}
 
+	/**
+	 * Requests a movie in Seerr (which sends it to Radarr). Made with the API key, so it's
+	 * attributed to the API key's user (the Seerr admin). A duplicate request counts as success.
+	 */
+	async request(tmdbId: number): Promise<'requested' | 'already_requested'> {
+		let res: Response;
+		try {
+			res = await this.fetchFn(`${this.baseUrl}/api/v1/request`, {
+				method: 'POST',
+				headers: {
+					'X-Api-Key': this.apiKey,
+					Accept: 'application/json',
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ mediaType: 'movie', mediaId: tmdbId }),
+				signal: AbortSignal.timeout(TIMEOUT_MS)
+			});
+		} catch (e) {
+			throw new SeerrError(`Can't reach Seerr: ${e instanceof Error ? e.message : e}`);
+		}
+		if (res.status === 409) return 'already_requested';
+		if (!res.ok) {
+			const body = (await res.json().catch(() => ({}))) as { message?: string };
+			throw new SeerrError(body.message || `Seerr returned HTTP ${res.status}`, res.status);
+		}
+		return 'requested';
+	}
+
 	private async get<T>(path: string, params: Record<string, string | number> = {}): Promise<T> {
 		// Seerr rejects some reserved characters unless they're percent-encoded, so build the query by hand.
 		const qs = Object.entries(params)

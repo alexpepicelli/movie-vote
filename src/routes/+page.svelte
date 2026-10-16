@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
 	import Countdown from '#lib/components/Countdown.svelte';
 	import LocalTime from '#lib/components/LocalTime.svelte';
@@ -10,6 +11,17 @@
 	let { data }: PageProps = $props();
 	const n = $derived(data.night);
 	const isOwner = $derived(data.user?.role === 'owner');
+
+	// Don't spoil the winner on the home page for anyone who hasn't seen the reveal yet.
+	let revealed = $state(false);
+	onMount(() => {
+		try {
+			revealed = !!(n && localStorage.getItem(`mv-revealed-${n.id}`));
+		} catch {
+			// storage blocked: keep it hidden
+		}
+	});
+	const showWinner = $derived(!!n?.winner && revealed);
 </script>
 
 {#if n}
@@ -44,9 +56,11 @@
 								>You have {n.votesLeft} vote{n.votesLeft === 1 ? '' : 's'} left.</span
 							>{/if}
 						{#if n.voteUntil}Closes <Countdown to={n.voteUntil} />.{/if}
-					{:else if n.winner}
+					{:else if n.winner && showWinner}
 						We're watching <span class="font-semibold">{n.winner.title}</span>
 						<StatusBadge status={n.winner} />
+					{:else if n.winner}
+						The votes are counted. Who won?
 					{:else}
 						Nothing was nominated.
 					{/if}
@@ -61,11 +75,13 @@
 							? n.votesLeft > 0
 								? 'Vote now'
 								: 'See the ballot'
-							: 'See results'}
+							: showWinner
+								? 'See results'
+								: '🎬 Reveal the winner'}
 				</span>
 			</div>
 
-			{#if n.winner && imageUrl(n.winner.posterPath, 'w342')}
+			{#if showWinner && n.winner && imageUrl(n.winner.posterPath, 'w342')}
 				<img
 					src={imageUrl(n.winner.posterPath, 'w342')}
 					alt=""
@@ -116,6 +132,28 @@
 		<a href={resolve('/healthz?deep')} class="text-muted underline">Check Seerr and Radarr</a>
 	{/if}
 </p>
+
+{#if data.rateNight}
+	<a
+		href={resolve('/nights/[id]', { id: data.rateNight.id })}
+		class="mt-6 flex items-center gap-4 rounded-xl border border-line bg-panel p-4 transition hover:border-marquee"
+	>
+		{#if imageUrl(data.rateNight.winner.posterPath, 'w185')}
+			<img
+				src={imageUrl(data.rateNight.winner.posterPath, 'w185')}
+				alt=""
+				class="h-16 w-11 shrink-0 rounded object-cover"
+			/>
+		{/if}
+		<span class="min-w-0 flex-1">
+			<span class="block text-sm"
+				>How was <span class="font-semibold">{data.rateNight.winner.title}</span>?</span
+			>
+			<span class="block text-xl tracking-wider text-marquee" aria-hidden="true">☆☆☆☆☆</span>
+		</span>
+		<span class="text-sm text-marquee">Rate it →</span>
+	</a>
+{/if}
 
 {#if data.mostWanted.length}
 	<section class="mt-8">
