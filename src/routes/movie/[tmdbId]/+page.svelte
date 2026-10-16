@@ -1,5 +1,6 @@
 <script lang="ts">
 	import StatusBadge from '#lib/components/StatusBadge.svelte';
+	import WatchlistButton from '#lib/components/WatchlistButton.svelte';
 	import { imageUrl } from '#lib/status.js';
 	import type { PageProps } from './$types';
 
@@ -56,15 +57,29 @@
 
 			{#if m.overview}<p class="mt-4 max-w-prose leading-relaxed">{m.overview}</p>{/if}
 
-			{#if m.trailerKey}
-				<a
-					href="https://www.youtube.com/watch?v={encodeURIComponent(m.trailerKey)}"
-					target="_blank"
-					rel="noopener noreferrer"
-					class="mt-6 inline-flex items-center gap-2 rounded-lg border border-line px-4 py-2 text-sm hover:border-marquee"
-				>
-					▶ Watch trailer
-				</a>
+			<div class="mt-6 flex flex-wrap items-start gap-3">
+				<WatchlistButton tmdbId={m.tmdbId} added={data.onMyWatchlist} />
+				{#if m.trailerKey}
+					<a
+						href="https://www.youtube.com/watch?v={encodeURIComponent(m.trailerKey)}"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="inline-flex items-center gap-2 rounded-lg border border-line px-4 py-2 text-sm hover:border-marquee"
+					>
+						▶ Watch trailer
+					</a>
+				{/if}
+			</div>
+
+			{#if data.wanters.length}
+				<p class="mt-4 text-sm text-muted">
+					<span class="text-ink"
+						>{data.wanters.length === 1
+							? '1 person wants'
+							: `${data.wanters.length} people want`}</span
+					>
+					to watch this: {data.wanters.map((p) => p.displayName).join(', ')}
+				</p>
 			{/if}
 		</div>
 	</div>

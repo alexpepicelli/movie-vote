@@ -4,6 +4,7 @@
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
+	const saved = $derived(new Set('saved' in data ? data.saved : []));
 
 	const toStatus = (m: {
 		availability: 'available' | 'partial' | 'processing' | 'pending' | 'none';
@@ -47,7 +48,7 @@
 	{#if data.search.results.length}
 		<div class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
 			{#each data.search.results as movie (movie.tmdbId)}
-				<MovieCard {movie} status={toStatus(movie)} />
+				<MovieCard {movie} status={toStatus(movie)} watchlisted={saved.has(movie.tmdbId)} />
 			{/each}
 		</div>
 		{#if data.search.totalPages > 1}
@@ -78,7 +79,7 @@
 				class="-mx-4 mt-3 flex snap-x gap-4 overflow-x-auto px-4 pb-2 [&>*]:w-36 [&>*]:shrink-0 [&>*]:snap-start sm:[&>*]:w-40"
 			>
 				{#each row.movies as movie (movie.tmdbId)}
-					<MovieCard {movie} status={toStatus(movie)} />
+					<MovieCard {movie} status={toStatus(movie)} watchlisted={saved.has(movie.tmdbId)} />
 				{/each}
 			</div>
 		</section>

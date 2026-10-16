@@ -4,9 +4,10 @@ import { db } from '#lib/server/db/index.js';
 import { movies } from '#lib/server/db/schema.js';
 import { radarr, seerr } from '#lib/server/integrations.js';
 import { getMovie, refreshStatuses, statusIsStale } from '#lib/server/movies.js';
+import { wantedBy } from '#lib/server/watchlist.js';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, locals }) => {
 	const tmdbId = Number(params.tmdbId);
 	if (!Number.isInteger(tmdbId) || tmdbId <= 0) error(404, 'Movie not found');
 
@@ -24,5 +25,10 @@ export const load: PageServerLoad = async ({ params }) => {
 		movie = db.select().from(movies).where(eq(movies.tmdbId, tmdbId)).get() ?? movie;
 	}
 
-	return { movie };
+	const wanters = wantedBy(db, [tmdbId]).get(tmdbId) ?? [];
+	return {
+		movie,
+		wanters,
+		onMyWatchlist: wanters.some((p) => p.id === locals.user!.id)
+	};
 };

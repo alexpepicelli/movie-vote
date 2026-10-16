@@ -3,6 +3,8 @@
 
 	let { status, compact = false }: { status: StatusInput; compact?: boolean } = $props();
 	const s = $derived(displayStatus(status));
+	// Poster cards are narrow: shorten the download label to just the percentage.
+	const text = $derived(compact && s.kind === 'downloading' ? `${s.progress}%` : s.label);
 
 	const STYLES = {
 		available: 'bg-emerald-500/15 text-emerald-300 ring-emerald-400/30',
@@ -26,6 +28,6 @@
 		title={s.label}
 	>
 		<span class="size-1.5 rounded-full {DOTS[s.kind]}" aria-hidden="true"></span>
-		{s.label}
+		{text}
 	</span>
 {/if}

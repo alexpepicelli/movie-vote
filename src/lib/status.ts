@@ -41,3 +41,20 @@ export function imageUrl(
 ) {
 	return path ? `/img/${size}${path}` : null;
 }
+
+/** Shapes a cached movie row for MovieCard (ratings are stored ×10). */
+export function cardMovie(row: {
+	tmdbId: number;
+	title: string;
+	year: number | null;
+	posterPath: string | null;
+	tmdbRating: number | null;
+}) {
+	return {
+		tmdbId: row.tmdbId,
+		title: row.title,
+		year: row.year,
+		posterPath: row.posterPath,
+		rating: row.tmdbRating === null ? null : row.tmdbRating / 10
+	};
+}
