@@ -15,7 +15,7 @@
 	);
 </script>
 
-<svelte:head><title>{m.title} · Movie Vote</title></svelte:head>
+<svelte:head><title>{m.title} · Votarr</title></svelte:head>
 
 <article>
 	<div class="relative -mx-4 -mt-6 overflow-hidden sm:mx-0 sm:rounded-2xl">

@@ -9,7 +9,7 @@
 	const stars = (n: number) => '★'.repeat(Math.round(n)) + '☆'.repeat(5 - Math.round(n));
 </script>
 
-<svelte:head><title>Movie nights · Movie Vote</title></svelte:head>
+<svelte:head><title>Movie nights · Votarr</title></svelte:head>
 
 <div class="flex flex-wrap items-end justify-between gap-3">
 	<h1 class="font-display text-4xl tracking-wide">Movie nights</h1>

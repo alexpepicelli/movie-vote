@@ -198,7 +198,7 @@ describe('image proxy', () => {
 	});
 
 	it('downloads once, then serves from disk', async () => {
-		dir = await mkdtemp(join(tmpdir(), 'mv-img-'));
+		dir = await mkdtemp(join(tmpdir(), 'votarr-img-'));
 		const fetchFn = vi.fn(async () => new Response(new Uint8Array([1, 2, 3])));
 
 		const a = await getImage(dir, 'w342', 'p.jpg', fetchFn as typeof fetch);

@@ -89,7 +89,7 @@
 	const maxVotes = $derived(Math.max(1, ...data.entries.map((e) => e.votes ?? 0)));
 </script>
 
-<svelte:head><title>{night.title} · Movie Vote</title></svelte:head>
+<svelte:head><title>{night.title} · Votarr</title></svelte:head>
 
 <header>
 	<p class="text-xs tracking-widest text-muted uppercase">Movie night</p>
@@ -372,7 +372,7 @@
 {:else if finished}
 	{#if winner}
 		<WinnerReveal
-			storageKey="mv-revealed-{night.id}"
+			storageKey="votarr-revealed-{night.id}"
 			posters={revealPosters}
 			count={data.entries.length}
 		>

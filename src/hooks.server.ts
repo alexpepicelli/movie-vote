@@ -12,15 +12,18 @@ import { radarr } from '#lib/server/integrations.js';
 import { startNightScheduler, startStatusPoller } from '#lib/server/poller.js';
 
 // Survives dev-server reloads so we don't stack up pollers.
-const globals = globalThis as { __mvStopPoller?: () => void; __mvStopScheduler?: () => void };
+const globals = globalThis as {
+	__votarrStopPoller?: () => void;
+	__votarrStopScheduler?: () => void;
+};
 
 export const init: ServerInit = () => {
 	runMigrations(db);
 	deleteExpiredSessions(db);
-	globals.__mvStopPoller?.();
-	globals.__mvStopPoller = startStatusPoller(db, radarr);
-	globals.__mvStopScheduler?.();
-	globals.__mvStopScheduler = startNightScheduler(db);
+	globals.__votarrStopPoller?.();
+	globals.__votarrStopPoller = startStatusPoller(db, radarr);
+	globals.__votarrStopScheduler?.();
+	globals.__votarrStopScheduler = startNightScheduler(db);
 };
 
 const PUBLIC_PATHS = ['/login', '/healthz'];

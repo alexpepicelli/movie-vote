@@ -15,7 +15,7 @@
 					.join(', ')} +${people.length - 2} more`;
 </script>
 
-<svelte:head><title>Watchlist · Movie Vote</title></svelte:head>
+<svelte:head><title>Watchlist · Votarr</title></svelte:head>
 
 <div class="flex items-end justify-between gap-4">
 	<h1 class="font-display text-4xl tracking-wide">Watchlist</h1>

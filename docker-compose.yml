@@ -2,13 +2,13 @@
 # or run it alongside: `docker compose up -d --build`.
 # Values come from a .env file next to this one (see .env.example).
 services:
-  movie-vote:
+  votarr:
     build: .
-    # image: ghcr.io/<you>/movie-vote:latest   # once CI publishes images
-    container_name: movie-vote
+    # image: ghcr.io/<you>/votarr:latest   # once CI publishes images
+    container_name: votarr
     restart: unless-stopped
     environment:
-      ORIGIN: ${ORIGIN} # public URL via Cloudflare Tunnel, e.g. https://movies.example.com
+      ORIGIN: ${ORIGIN} # public URL via Cloudflare Tunnel, e.g. https://votarr.example.com
       SEERR_URL: ${SEERR_URL:-http://seerr:5055}
       SEERR_API_KEY: ${SEERR_API_KEY}
       RADARR_URL: ${RADARR_URL:-http://radarr:7878}

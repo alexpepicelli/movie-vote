@@ -16,7 +16,7 @@
 	let revealed = $state(false);
 	onMount(() => {
 		try {
-			revealed = !!(n && localStorage.getItem(`mv-revealed-${n.id}`));
+			revealed = !!(n && localStorage.getItem(`votarr-revealed-${n.id}`));
 		} catch {
 			// storage blocked: keep it hidden
 		}

@@ -24,7 +24,7 @@
 <svelte:head>
 	<link rel="icon" href={favicon} />
 	<meta name="theme-color" content="#1a1a22" />
-	<title>Movie Vote</title>
+	<title>Votarr</title>
 	<link rel="preconnect" href="https://fonts.googleapis.com" />
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
 	<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet" />
@@ -35,7 +35,7 @@
 		<a
 			href={resolve('/')}
 			class="font-display text-xl tracking-wide whitespace-nowrap text-marquee sm:text-2xl"
-			>🎬 Movie Vote</a
+			>🎬 Votarr</a
 		>
 
 		{#if data.user}

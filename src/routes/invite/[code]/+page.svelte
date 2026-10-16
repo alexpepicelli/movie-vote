@@ -7,7 +7,7 @@
 	let pending = $state(false);
 </script>
 
-<svelte:head><title>Join · Movie Vote</title></svelte:head>
+<svelte:head><title>Join · Votarr</title></svelte:head>
 
 <div class="mx-auto max-w-sm pt-8">
 	{#if data.state === 'valid'}

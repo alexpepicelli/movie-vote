@@ -1,6 +1,6 @@
-# Movie Vote — Design Plan
+# Votarr — Design Plan
 
-Working name: **Movie Vote**. A self-hosted web app that sits next to Radarr and Seerr. Friends keep watchlists, nominate films for a movie night, vote, and the winner is checked against (or requested through) your stack.
+Name: **Votarr**. A self-hosted web app that sits next to Radarr and Seerr. Friends keep watchlists, nominate films for a movie night, vote, and the winner is checked against (or requested through) your stack.
 
 Each section ends with a **Decision** line. Approve, change or reject it per section.
 
@@ -69,7 +69,7 @@ Rules:
 
 **Rules**
 
-- All API keys stay **server-side only**. The browser only talks to Movie Vote.
+- All API keys stay **server-side only**. The browser only talks to Votarr.
 - Metadata is cached in a local DB (`movies` table, refreshed after 7 days). Radarr status is polled every 5 minutes for films that are active in a night or on a watchlist.
 - Posters load from `image.tmdb.org` through a small proxy/cache route, so friends' browsers don't need direct TMDB access and the app keeps working if TMDB is slow.
 - Status badges: 🟢 On server · 🟡 Downloading (x%) · 🟠 Requested · ⚪ Not requested.
@@ -192,12 +192,12 @@ Each message type can be switched on or off by the owner in admin settings.
 ```yaml
 # docker-compose.yml (excerpt — joins your existing *arr network)
 services:
-  movie-vote:
-    image: ghcr.io/<you>/movie-vote:latest # or build: .
-    container_name: movie-vote
+  votarr:
+    image: ghcr.io/<you>/votarr:latest # or build: .
+    container_name: votarr
     restart: unless-stopped
     environment:
-      - ORIGIN=https://movies.example.com
+      - ORIGIN=https://votarr.example.com
       - SEERR_URL=http://seerr:5055
       - SEERR_API_KEY=${SEERR_API_KEY}
       - RADARR_URL=http://radarr:7878
@@ -205,7 +205,7 @@ services:
       - SESSION_SECRET=${SESSION_SECRET}
       - TZ=Australia/Adelaide
     volumes:
-      - ./movie-vote/data:/data # sqlite db + poster cache
+      - ./votarr/data:/data # sqlite db + poster cache
     networks: [media]
     healthcheck:
       test: ['CMD', 'wget', '-qO-', 'http://localhost:3000/healthz']
@@ -218,7 +218,7 @@ networks:
 - Migrations run automatically on startup
 - `/healthz` checks the DB, Seerr and Radarr
 - Backups: nightly `sqlite3 .backup` into `/data/backups`, keeping 14 days
-- **Friend access: ✅ your existing Cloudflare Tunnel.** Add a public hostname such as `movies.<yourdomain>` → `http://movie-vote:3000`. The `cloudflared` container must be on the same Docker network (or point it at `localhost:3000` if cloudflared runs on the host). Set `ORIGIN` to the public URL so CSRF checks and cookies work. The app's own login protects it, so Cloudflare Access isn't needed (though it can be added).
+- **Friend access: ✅ your existing Cloudflare Tunnel.** Add a public hostname such as `votarr.<yourdomain>` → `http://votarr:3000`. The `cloudflared` container must be on the same Docker network (or point it at `localhost:3000` if cloudflared runs on the host). Set `ORIGIN` to the public URL so CSRF checks and cookies work. The app's own login protects it, so Cloudflare Access isn't needed (though it can be added).
 - SSE live updates work through Cloudflare Tunnel. The app sends a heartbeat every 30s so idle connections aren't cut.
 
 **Decision:** ✅ Approved.

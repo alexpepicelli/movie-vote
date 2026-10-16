@@ -11,7 +11,7 @@
 		form?.values ? form.values[name] === 'on' : fallback;
 </script>
 
-<svelte:head><title>New movie night · Movie Vote</title></svelte:head>
+<svelte:head><title>New movie night · Votarr</title></svelte:head>
 
 <div class="mx-auto max-w-lg">
 	<h1 class="font-display text-4xl tracking-wide">Start a movie night</h1>

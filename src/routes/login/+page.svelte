@@ -18,11 +18,11 @@
 	};
 </script>
 
-<svelte:head><title>Sign in · Movie Vote</title></svelte:head>
+<svelte:head><title>Sign in · Votarr</title></svelte:head>
 
 <div class="mx-auto max-w-sm pt-8">
 	{#if data.needsSetup}
-		<h1 class="font-display text-4xl tracking-wide">Set up Movie Vote</h1>
+		<h1 class="font-display text-4xl tracking-wide">Set up Votarr</h1>
 		<p class="mt-2 text-sm text-muted">
 			Create the owner account. You'll be able to invite friends straight after.
 			{#if data.seerrEnabled}

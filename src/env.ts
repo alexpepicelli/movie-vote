@@ -14,7 +14,7 @@ const optional = (value: string | undefined) => value || undefined;
 export const variables = defineEnvVars({
 	DATABASE_URL: {
 		description: 'Path to the SQLite database file.',
-		schema: (value) => value || './data/movie-vote.db'
+		schema: (value) => value || './data/votarr.db'
 	},
 	SEERR_URL: {
 		description: 'Internal URL of Seerr, e.g. http://seerr:5055',

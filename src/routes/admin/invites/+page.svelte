@@ -23,7 +23,7 @@
 				: 'Open';
 </script>
 
-<svelte:head><title>Invites · Movie Vote</title></svelte:head>
+<svelte:head><title>Invites · Votarr</title></svelte:head>
 
 <div class="flex items-center justify-between gap-4">
 	<h1 class="font-display text-4xl tracking-wide">Invites</h1>

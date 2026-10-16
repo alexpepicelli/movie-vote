@@ -17,7 +17,7 @@
 	});
 </script>
 
-<svelte:head><title>{data.q ? `${data.q} · ` : ''}Discover · Movie Vote</title></svelte:head>
+<svelte:head><title>{data.q ? `${data.q} · ` : ''}Discover · Votarr</title></svelte:head>
 
 <form method="GET" action={resolve('/discover')} class="flex gap-2" data-sveltekit-keepfocus>
 	<input
