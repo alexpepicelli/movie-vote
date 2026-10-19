@@ -77,7 +77,7 @@
 						{#if n.status !== 'closed'}
 							{@const until = n.status === 'voting' ? n.voteUntil : n.nominateUntil}
 							{#if until}
-								<span class="text-live [text-shadow:0_0_10px_rgba(69,227,255,0.5)]"
+								<span class="text-live [text-shadow:0_0_10px_rgb(var(--live-rgb)/0.5)]"
 									>closes in <Countdown to={until} format="clock" /></span
 								>
 							{/if}

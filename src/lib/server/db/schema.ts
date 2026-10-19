@@ -98,6 +98,8 @@ export const nights = sqliteTable('nights', {
 	voteUntil: integer('vote_until', { mode: 'timestamp' }),
 	maxNominations: integer('max_nominations').notNull().default(2),
 	maxVotes: integer('max_votes').notNull().default(3),
+	/** Look of the night (see src/lib/themes.ts). */
+	theme: text('theme').notNull().default('synthwave'),
 	selfVoteAllowed: integer('self_vote_allowed', { mode: 'boolean' }).notNull().default(false),
 	/**
 	 * Secret ballot: hides scores until voting closes and who voted for what for good.

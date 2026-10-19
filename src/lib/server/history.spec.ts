@@ -46,6 +46,7 @@ function closedNight() {
 		owner.id,
 		{
 			title: 'Friday',
+			theme: 'synthwave',
 			scheduledFor: null,
 			nominateUntil: null,
 			voteUntil: null,

@@ -11,6 +11,7 @@ import {
 	votes,
 	watchlist
 } from './db/schema';
+import { isTheme } from '../themes';
 import { scoreOf, tally } from './tally';
 import { mostWanted, watchedMovieIds } from './watchlist';
 
@@ -24,6 +25,7 @@ const OPEN = ['nominating', 'voting'] as const;
 
 export type NightInput = {
 	title: string;
+	theme: string;
 	scheduledFor: Date | null;
 	nominateUntil: Date | null;
 	voteUntil: Date | null;
@@ -37,6 +39,7 @@ export type NightInput = {
 export function validateNightInput(input: NightInput, now = new Date()): string | null {
 	if (!input.title || input.title.length > 60)
 		return 'Give the night a title (up to 60 characters).';
+	if (!isTheme(input.theme)) return 'Pick one of the themes.';
 	if (
 		!Number.isInteger(input.maxNominations) ||
 		input.maxNominations < 1 ||
@@ -279,6 +282,13 @@ export function closeVoting(
 			.run();
 		return OK;
 	});
+}
+
+/** Owner picks a different look for a night that isn't finished with. */
+export function setTheme(db: Db, nightId: string, theme: string): Result {
+	if (!isTheme(theme)) return fail('Pick one of the themes.');
+	const changed = db.update(nights).set({ theme }).where(eq(nights.id, nightId)).run().changes;
+	return changed ? OK : fail('Movie night not found.');
 }
 
 export function cancelNight(db: Db, nightId: string): Result {

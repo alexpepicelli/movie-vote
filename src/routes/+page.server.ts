@@ -17,6 +17,7 @@ export const load: PageServerLoad = ({ locals, depends }) => {
 		night: view && {
 			id: view.night.id,
 			title: view.night.title,
+			theme: view.night.theme,
 			status: view.night.status,
 			scheduledFor: view.night.scheduledFor,
 			nominateUntil: view.night.nominateUntil,

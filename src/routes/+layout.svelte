@@ -8,8 +8,13 @@
 	import { invalidate } from '$app/navigation';
 	import Avatar from '#lib/components/Avatar.svelte';
 	import Icon from '#lib/components/Icon.svelte';
+	import { resolveTheme } from '#lib/themes.js';
+	import { themePreview } from '#lib/theme-preview.svelte.js';
 
 	let { children, data }: LayoutProps = $props();
+
+	// A night's pages (and the home page, while it's the current night) wear that night's theme.
+	const theme = $derived(resolveTheme(themePreview.id ?? page.data.night?.theme));
 
 	// Live updates: when a night changes, reload the pages that show nights. Debounced so a
 	// burst of votes is one reload; after a reconnect, reload too in case we missed something.
@@ -65,82 +70,87 @@
 	<link rel="preconnect" href="https://fonts.googleapis.com" />
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
 	<link
-		href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Yellowtail&family=Exo+2:ital,wght@0,400;0,500;0,600;0,700;0,800;1,800&family=Share+Tech+Mono&display=swap"
+		href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Yellowtail&family=Exo+2:ital,wght@0,400;0,500;0,600;0,700;0,800;1,800&family=Share+Tech+Mono&family=Creepster&family=Mountains+of+Christmas:wght@700&display=swap"
 		rel="stylesheet"
 	/>
 </svelte:head>
 
-<div class="mx-auto flex min-h-dvh max-w-6xl flex-col px-4 sm:px-6">
-	<header class="flex items-center justify-between gap-4 py-4">
-		<a href={resolve('/')} class="flex items-center gap-2" aria-label="Votarr home">
-			<img src={logo} alt="" class="size-10" width="40" height="40" />
-			<span class="font-display text-2xl leading-none text-sunset drop-shadow-[0_0_12px_rgba(255,79,154,0.6)]">VOTARR</span>
-		</a>
+<div class="app" data-theme={theme}>
+	<div class="mx-auto flex min-h-dvh max-w-6xl flex-col px-4 sm:px-6">
+		<header class="flex items-center justify-between gap-4 py-4">
+			<a href={resolve('/')} class="flex items-center gap-2" aria-label="Votarr home">
+				<img src={logo} alt="" class="size-10" width="40" height="40" />
+				<span
+					class="font-display text-2xl leading-none text-sunset drop-shadow-[0_0_12px_rgb(var(--accent-rgb)/0.6)]"
+					>VOTARR</span
+				>
+			</a>
 
-		{#if data.user}
-			<nav class="hidden items-center gap-1 text-sm sm:flex" aria-label="Main">
+			{#if data.user}
+				<nav class="hidden items-center gap-1 text-sm sm:flex" aria-label="Main">
+					{#each links as link (link.href)}
+						{@const active = isActive(link.href)}
+						<a
+							href={link.href}
+							aria-current={active ? 'page' : undefined}
+							class="flex items-center gap-2 px-3 py-2 font-semibold transition {active
+								? 'text-ink shadow-[inset_0_-2px_0_var(--color-accent)] [text-shadow:0_0_12px_rgb(var(--accent-rgb)/0.8)]'
+								: 'text-muted hover:text-ink'}"
+						>
+							<Icon name={link.icon} size={18} class={active ? 'text-accent' : ''} />
+							<span class="hidden md:inline">{link.label}</span>
+						</a>
+					{/each}
+				</nav>
+
+				<div class="flex items-center gap-2 text-sm whitespace-nowrap">
+					<Avatar
+						id={data.user.id}
+						name={data.user.displayName}
+						hasAvatar={!!data.user.avatarUrl}
+						size={32}
+					/>
+					<span class="hidden font-semibold lg:inline">{data.user.displayName}</span>
+					<form method="POST" action={resolve('/logout')}>
+						<button
+							aria-label="Sign out"
+							title="Sign out"
+							class="grid size-10 place-items-center rounded-lg text-muted transition enabled:hover:bg-panel enabled:hover:text-ink"
+						>
+							<Icon name="logout" size={18} />
+						</button>
+					</form>
+				</div>
+			{/if}
+		</header>
+
+		<main class="flex-1 pt-2 pb-8 {data.user ? 'pb-28 sm:pb-12' : ''}">
+			{@render children()}
+		</main>
+	</div>
+
+	{#if data.user}
+		<nav
+			aria-label="Main"
+			class="fixed inset-x-0 bottom-0 z-20 border-t border-accent/30 bg-screen/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_30px_-12px_rgb(var(--accent-rgb)/0.5)] backdrop-blur sm:hidden"
+		>
+			<ul class="mx-auto flex max-w-md justify-around">
 				{#each links as link (link.href)}
 					{@const active = isActive(link.href)}
-					<a
-						href={link.href}
-						aria-current={active ? 'page' : undefined}
-						class="flex items-center gap-2 px-3 py-2 font-semibold transition {active
-							? 'text-ink shadow-[inset_0_-2px_0_var(--color-accent)] [text-shadow:0_0_12px_rgba(255,79,154,0.8)]'
-							: 'text-muted hover:text-ink'}"
-					>
-						<Icon name={link.icon} size={18} class={active ? 'text-accent' : ''} />
-						<span class="hidden md:inline">{link.label}</span>
-					</a>
-				{/each}
-			</nav>
-
-			<div class="flex items-center gap-2 text-sm whitespace-nowrap">
-				<Avatar
-					id={data.user.id}
-					name={data.user.displayName}
-					hasAvatar={!!data.user.avatarUrl}
-					size={32}
-				/>
-				<span class="hidden font-semibold lg:inline">{data.user.displayName}</span>
-				<form method="POST" action={resolve('/logout')}>
-					<button
-						aria-label="Sign out"
-						title="Sign out"
-						class="grid size-10 place-items-center rounded-lg text-muted transition enabled:hover:bg-panel enabled:hover:text-ink"
-					>
-						<Icon name="logout" size={18} />
-					</button>
-				</form>
-			</div>
-		{/if}
-	</header>
-
-	<main class="flex-1 pt-2 pb-8 {data.user ? 'pb-28 sm:pb-12' : ''}">
-		{@render children()}
-	</main>
-</div>
-
-{#if data.user}
-	<nav
-		aria-label="Main"
-		class="fixed inset-x-0 bottom-0 z-20 border-t border-accent/30 bg-screen/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_30px_-12px_rgba(255,79,154,0.5)] backdrop-blur sm:hidden"
-	>
-		<ul class="mx-auto flex max-w-md justify-around">
-			{#each links as link (link.href)}
-				{@const active = isActive(link.href)}
-				<li>
-					<a
-						href={link.href}
-						aria-current={active ? 'page' : undefined}
-						class="flex min-h-14 min-w-14 flex-col items-center justify-center gap-1 px-2 text-[11px] font-semibold {active
-							? 'text-accent [filter:drop-shadow(0_0_6px_rgba(255,79,154,0.8))]'
+					<li>
+						<a
+							href={link.href}
+							aria-current={active ? 'page' : undefined}
+							class="flex min-h-14 min-w-14 flex-col items-center justify-center gap-1 px-2 text-[11px] font-semibold {active
+								? 'text-accent [filter:drop-shadow(0_0_6px_rgb(var(--accent-rgb)/0.8))]'
 								: 'text-muted'}"
-					>
-						<Icon name={link.icon} size={22} />
-						{link.label}
-					</a>
-				</li>
-			{/each}
-		</ul>
-	</nav>
-{/if}
+						>
+							<Icon name={link.icon} size={22} />
+							{link.label}
+						</a>
+					</li>
+				{/each}
+			</ul>
+		</nav>
+	{/if}
+</div>

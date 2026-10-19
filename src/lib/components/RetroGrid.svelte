@@ -23,7 +23,6 @@
 	const CELL = 30;
 	const LINE = 1.5;
 	const PERIOD_MS = 1400;
-	const COLOR = 'rgba(255, 79, 154, 0.4)';
 	// The floor fades in from the horizon, fully opaque 65% of the way toward the viewer.
 	const FADE = 0.65;
 
@@ -53,8 +52,10 @@
 			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 			ctx.clearRect(0, 0, width, h);
 			ctx.globalCompositeOperation = 'source-over';
-			ctx.fillStyle = COLOR;
-			ctx.strokeStyle = COLOR;
+			// The floor takes its colour from the night's theme.
+			const color = `rgb(${getComputedStyle(canvas).getPropertyValue('--grid-rgb')} / 0.4)`;
+			ctx.fillStyle = color;
+			ctx.strokeStyle = color;
 
 			const cx = width / 2;
 			const toY = (d: number) => h - riseAt(d);

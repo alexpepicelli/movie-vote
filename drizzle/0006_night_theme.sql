@@ -1,0 +1,1 @@
+ALTER TABLE `nights` ADD `theme` text DEFAULT 'synthwave' NOT NULL;

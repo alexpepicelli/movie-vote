@@ -1,0 +1,202 @@
+/*
+ * Movie night themes. `[data-theme]` is set on the app shell from the night's `theme`
+ * (ids and picker labels live in src/lib/themes.ts).
+ *
+ * Every themed value is a CSS variable, so a theme is just a block of overrides. To add one:
+ * copy the `halloween` or `christmas` block, give it a new id, change what you like (anything you leave out
+ * falls back to the synthwave default), and add the id to themes.ts.
+ *
+ * Variables:
+ *   --color-*        palette (screen/panel/raised/line = surfaces, ink/muted = text,
+ *                    accent = main brand, sunset = warm title tone, live = cool highlight)
+ *   --*-rgb          the same colours as "r g b" triplets, for glows with alpha
+ *   --bg-glow-a/b/c  page background glows;  --sky-a/b/c  tint of the hero scene
+ *   --btn-from       start of the button gradient (ends at --color-accent)
+ *   --title-top      top of the title gradient
+ *   --script-*       night-name sign: fill, hot core, outer glow;  --caps-*  the line under it
+ *   --sun-*          the sun/moon: art, stripe mask, glow;  --grid-rgb  the floor grid
+ *   --horizon-core   brightest point of the horizon line
+ *   --font-script    font for night names
+ * Scene art (bats, gravestones…) can be drawn onto `.scene-deco` and its ::after (see halloween).
+ */
+
+:root,
+[data-theme='synthwave'] {
+	--accent-rgb: 255 79 154;
+	--live-rgb: 69 227 255;
+	--bg-glow-a: 255 79 154;
+	--bg-glow-b: 69 227 255;
+	--bg-glow-c: 150 80 255;
+	--sky-a: 120 60 200;
+	--sky-b: 255 79 154;
+	--sky-c: 255 138 76;
+	--btn-from: #ff8a4c;
+	--title-top: #fff3d6;
+	--script-fill: #ffd6ea;
+	--script-core: #fff;
+	--script-glow: 255 42 122;
+	--caps-color: #ffd23f;
+	--caps-rgb: 255 210 63;
+	--sun-art: linear-gradient(180deg, #ffe08a, #ff8a4c 45%, var(--color-accent));
+	--sun-glow-a: 255 138 76;
+	--sun-glow-b: 255 79 154;
+	/* Bands widen toward the horizon, like the sun sinking behind the grid. */
+	--sun-mask: linear-gradient(
+		180deg,
+		#000 0 48%,
+		transparent 48% 51%,
+		#000 51% 60%,
+		transparent 60% 64%,
+		#000 64% 72%,
+		transparent 72% 77%,
+		#000 77% 84%,
+		transparent 84% 91%,
+		#000 91%
+	);
+	--grid-rgb: 255 79 154;
+	--horizon-core: #fff;
+}
+
+[data-theme='halloween'] {
+	--color-screen: #0b0710;
+	--color-panel: #161022;
+	--color-raised: #1f1630;
+	--color-line: #35214a;
+	--color-ink: #f7efe4;
+	--color-muted: #b9a7c4;
+	--color-accent: #ff7518;
+	--color-sunset: #ffc233;
+	--color-live: #b5ff4a;
+	--color-on-accent: #1a0900;
+	--font-script: 'Creepster', cursive;
+
+	--accent-rgb: 255 117 24;
+	--live-rgb: 181 255 74;
+	--bg-glow-a: 255 117 24;
+	--bg-glow-b: 140 80 255;
+	--bg-glow-c: 181 255 74;
+	--sky-a: 90 40 160;
+	--sky-b: 255 117 24;
+	--sky-c: 255 80 0;
+	--btn-from: #ffb000;
+	--title-top: #fff1cf;
+	--script-fill: #ffe1bf;
+	--script-glow: 255 90 0;
+	--caps-color: #b5ff4a;
+	--caps-rgb: 181 255 74;
+	--sun-art:
+		radial-gradient(circle at 64% 36%, rgb(120 60 0 / 0.16) 0 7%, transparent 8%),
+		radial-gradient(circle at 36% 62%, rgb(120 60 0 / 0.14) 0 10%, transparent 11%),
+		radial-gradient(circle at 70% 70%, rgb(120 60 0 / 0.1) 0 5%, transparent 6%),
+		radial-gradient(circle at 35% 30%, #fffbe6, #ffe6a3 42%, #ffb347 100%);
+	--sun-glow-a: 255 150 40;
+	--sun-glow-b: 255 100 0;
+	--sun-mask: none;
+	--grid-rgb: 160 90 255;
+	--horizon-core: #ffe9b0;
+}
+
+/* Bats flutter across the sky; gravestones and a bare tree stand on the horizon. */
+[data-theme='halloween'] .scene-deco {
+	background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 200'><g fill='%2306030a'><path transform='translate(120 50) scale(1.1)' d='M0 0C-6-8-20-8-30 2-22 0-17 3-13 9-9 4-4 4 0 10 4 4 9 4 13 9 17 3 22 0 30 2 20-8 6-8 0 0z'/><path transform='translate(210 95) scale(0.7)' d='M0 0C-6-8-20-8-30 2-22 0-17 3-13 9-9 4-4 4 0 10 4 4 9 4 13 9 17 3 22 0 30 2 20-8 6-8 0 0z'/><path transform='translate(330 35) scale(0.9)' d='M0 0C-6-8-20-8-30 2-22 0-17 3-13 9-9 4-4 4 0 10 4 4 9 4 13 9 17 3 22 0 30 2 20-8 6-8 0 0z'/><path transform='translate(560 70) scale(1.3)' d='M0 0C-6-8-20-8-30 2-22 0-17 3-13 9-9 4-4 4 0 10 4 4 9 4 13 9 17 3 22 0 30 2 20-8 6-8 0 0z'/><path transform='translate(650 28) scale(0.8)' d='M0 0C-6-8-20-8-30 2-22 0-17 3-13 9-9 4-4 4 0 10 4 4 9 4 13 9 17 3 22 0 30 2 20-8 6-8 0 0z'/><path transform='translate(720 110) scale(0.6)' d='M0 0C-6-8-20-8-30 2-22 0-17 3-13 9-9 4-4 4 0 10 4 4 9 4 13 9 17 3 22 0 30 2 20-8 6-8 0 0z'/></g></svg>")
+		top center / 100% auto no-repeat;
+	animation: bats-drift 16s ease-in-out infinite alternate;
+}
+
+[data-theme='halloween'] .scene-deco::after {
+	content: '';
+	position: absolute;
+	inset-inline: 0;
+	bottom: var(--floor, 0);
+	height: 4.5rem;
+	background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 70' preserveAspectRatio='xMaxYMax slice'><g fill='%2307040b' stroke='%2307040b'><path stroke='none' d='M0 70V58C60 54 120 60 200 56S330 58 400 55 520 60 600 56 760 58 840 55 940 59 1000 56V70z'/><path stroke='none' d='M60 62V40a11 11 0 0 1 22 0V62zM150 62V46a9 9 0 0 1 18 0V62zM430 62V38a12 12 0 0 1 24 0V62zM520 62V48a8 8 0 0 1 16 0V62zM760 62V42a10 10 0 0 1 20 0V62zM930 62V46a9 9 0 0 1 18 0V62z'/><path fill='none' stroke-width='5' d='M250 62V30M238 40H262M690 62V34M679 42H701'/><path fill='none' stroke-width='4' stroke-linecap='round' d='M330 62L336 30L322 8M336 30L356 14M334 42L316 30M336 22L346 4M322 8L312 2'/><path stroke='none' d='M850 62c-14 0-22-9-22-19s8-17 22-17 22 7 22 17-8 19-22 19z'/><path fill='none' stroke-width='4' stroke-linecap='round' d='M850 27c0-6 3-9 8-11'/></g></svg>")
+		right bottom / auto 100% no-repeat;
+}
+
+@keyframes bats-drift {
+	from {
+		transform: translate(-1.5%, 2%);
+	}
+	to {
+		transform: translate(2%, -3%);
+	}
+}
+
+[data-theme='christmas'] {
+	--color-screen: #07110d;
+	--color-panel: #0f201a;
+	--color-raised: #152b23;
+	--color-line: #25483a;
+	--color-ink: #f4f8f2;
+	--color-muted: #a9c4b6;
+	--color-accent: #ff3b4e;
+	--color-sunset: #ffd76a;
+	--color-live: #5dffa0;
+	--color-on-accent: #1a0507;
+	--font-script: 'Mountains of Christmas', cursive;
+
+	--accent-rgb: 255 59 78;
+	--live-rgb: 93 255 160;
+	--bg-glow-a: 255 59 78;
+	--bg-glow-b: 46 230 107;
+	--bg-glow-c: 255 215 106;
+	--sky-a: 20 80 60;
+	--sky-b: 255 59 78;
+	--sky-c: 255 215 106;
+	--btn-from: #ff8a5c;
+	--title-top: #fff6dc;
+	--script-fill: #ffe6e6;
+	--script-glow: 255 40 60;
+	--caps-color: #ffd76a;
+	--caps-rgb: 255 215 106;
+	--sun-art: radial-gradient(circle at 36% 32%, #f4faff, #cfe6fa 45%, #8fbbe6 100%);
+	--sun-glow-a: 180 220 255;
+	--sun-glow-b: 100 180 255;
+	--sun-mask: none;
+	--grid-rgb: 93 255 160;
+	--horizon-core: #fff;
+}
+
+/* Snow falls in three layers at different speeds; pine trees line the horizon. */
+[data-theme='christmas'] .scene-deco {
+	background-image:
+		radial-gradient(2px 2px at 20px 30px, #fff, transparent),
+		radial-gradient(2px 2px at 110px 90px, #fff, transparent),
+		radial-gradient(1.5px 1.5px at 60px 150px, #fff, transparent),
+		radial-gradient(2.5px 2.5px at 40px 60px, #fff, transparent),
+		radial-gradient(2px 2px at 190px 200px, #fff, transparent),
+		radial-gradient(3px 3px at 120px 40px, #fff, transparent),
+		radial-gradient(2.5px 2.5px at 260px 240px, #fff, transparent);
+	background-size:
+		180px 180px,
+		180px 180px,
+		180px 180px,
+		260px 260px,
+		260px 260px,
+		340px 340px,
+		340px 340px;
+	animation: snowfall 14s linear infinite;
+}
+
+[data-theme='christmas'] .scene-deco::after {
+	content: '';
+	position: absolute;
+	inset-inline: 0;
+	bottom: var(--floor, 0);
+	height: 4.5rem;
+	background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 80' preserveAspectRatio='xMaxYMax slice'><g fill='%23040d09' stroke='%23040d09'><path stroke='none' d='M0 80V72C80 70 160 74 260 71S420 73 520 71 700 74 800 71 930 73 1000 71V80z'/><path stroke='none' d='M37 80V72H43V80z'/><path stroke='none' d='M24 73L40 48L56 73z'/><path stroke='none' d='M27 57L40 32L53 57z'/><path stroke='none' d='M31 43L40 18L49 43z'/><path stroke='none' d='M92 80V74H98V80z'/><path stroke='none' d='M83 75L95 56L107 75z'/><path stroke='none' d='M86 63L95 45L104 63z'/><path stroke='none' d='M88 53L95 35L102 53z'/><path stroke='none' d='M167 80V72H173V80z'/><path stroke='none' d='M155 74L170 51L185 74z'/><path stroke='none' d='M158 59L170 36L182 59z'/><path stroke='none' d='M162 47L170 24L178 47z'/><path stroke='none' d='M257 80V75H263V80z'/><path stroke='none' d='M250 75L260 59L270 75z'/><path stroke='none' d='M252 65L260 49L268 65z'/><path stroke='none' d='M254 57L260 41L266 57z'/><path stroke='none' d='M517 80V75H523V80z'/><path stroke='none' d='M510 76L520 61L530 76z'/><path stroke='none' d='M512 66L520 51L528 66z'/><path stroke='none' d='M514 58L520 43L526 58z'/><path stroke='none' d='M597 80V72H603V80z'/><path stroke='none' d='M584 73L600 49L616 73z'/><path stroke='none' d='M588 58L600 33L612 58z'/><path stroke='none' d='M591 44L600 20L609 44z'/><path stroke='none' d='M677 80V74H683V80z'/><path stroke='none' d='M668 75L680 57L692 75z'/><path stroke='none' d='M671 64L680 46L689 64z'/><path stroke='none' d='M674 54L680 37L686 54z'/><path stroke='none' d='M757 80V71H763V80z'/><path stroke='none' d='M742 72L760 45L778 72z'/><path stroke='none' d='M746 55L760 28L774 55z'/><path stroke='none' d='M750 41L760 14L770 41z'/><path stroke='none' d='M847 80V74H853V80z'/><path stroke='none' d='M839 75L850 58L861 75z'/><path stroke='none' d='M841 65L850 48L859 65z'/><path stroke='none' d='M844 55L850 39L856 55z'/><path stroke='none' d='M927 80V72H933V80z'/><path stroke='none' d='M915 73L930 50L945 73z'/><path stroke='none' d='M918 58L930 35L942 58z'/><path stroke='none' d='M921 46L930 22L939 46z'/><path stroke='none' d='M972 80V75H978V80z'/><path stroke='none' d='M966 76L975 62L984 76z'/><path stroke='none' d='M968 67L975 53L982 67z'/><path stroke='none' d='M970 59L975 45L980 59z'/><circle cx='760' cy='52' r='2.2' fill='%23ff3b4e' stroke='none'/><circle cx='752' cy='60' r='2.2' fill='%23ffd76a' stroke='none'/><circle cx='768' cy='58' r='2.2' fill='%2352ff9a' stroke='none'/><circle cx='600' cy='48' r='2.2' fill='%23ffd76a' stroke='none'/><circle cx='594' cy='56' r='2.2' fill='%23ff3b4e' stroke='none'/><circle cx='606' cy='55' r='2.2' fill='%2352ff9a' stroke='none'/><circle cx='930' cy='46' r='2.2' fill='%23ff3b4e' stroke='none'/><circle cx='924' cy='54' r='2.2' fill='%23ffd76a' stroke='none'/><circle cx='40' cy='50' r='2.2' fill='%23ffd76a' stroke='none'/><circle cx='36' cy='56' r='2.2' fill='%23ff3b4e' stroke='none'/></g></svg>")
+		right bottom / auto 100% no-repeat;
+}
+
+@keyframes snowfall {
+	to {
+		background-position:
+			0 180px,
+			0 180px,
+			0 180px,
+			0 260px,
+			0 260px,
+			0 340px,
+			0 340px;
+	}
+}

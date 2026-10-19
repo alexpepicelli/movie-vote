@@ -19,6 +19,7 @@ import {
 	nominate,
 	nominationPicker,
 	removeVote,
+	setTheme,
 	startVoting,
 	withdraw,
 	type Result
@@ -151,6 +152,14 @@ export const actions: Actions = {
 				String(form.get('comment') ?? '')
 			)
 		);
+	},
+	setTheme: async ({ params, locals, request }) => {
+		requireOwner(locals);
+		const form = await request.formData();
+		const result = setTheme(db, params.id, String(form.get('theme') ?? ''));
+		if (!result.ok) return fail(400, { error: result.error });
+		nightChanged(params.id);
+		return { ok: true };
 	},
 	cancel: ({ params, locals }) => {
 		requireOwner(locals);

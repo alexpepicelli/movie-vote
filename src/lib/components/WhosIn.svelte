@@ -99,7 +99,7 @@
 					<li class="flex w-16 flex-col items-center gap-1 text-center">
 						<span
 							class="rounded-full p-0.5 {done(p)
-								? 'bg-gradient-to-br from-sunset to-accent shadow-[0_0_12px_rgba(255,79,154,0.6)]'
+								? 'bg-gradient-to-br from-sunset to-accent shadow-[0_0_12px_rgb(var(--accent-rgb)/0.6)]'
 								: 'bg-line'}"
 						>
 							<Avatar

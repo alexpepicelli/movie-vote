@@ -2,6 +2,7 @@ import { error, fail, redirect } from '@sveltejs/kit';
 import { db } from '#lib/server/db/index.js';
 import { nightChanged } from '#lib/server/events.js';
 import { createNight, openNight, type NightInput } from '#lib/server/nights.js';
+import { DEFAULT_THEME } from '#lib/themes.js';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = ({ locals }) => {
@@ -19,6 +20,7 @@ export const actions: Actions = {
 		const form = await request.formData();
 		const input: NightInput = {
 			title: String(form.get('title') ?? '').trim(),
+			theme: String(form.get('theme') ?? DEFAULT_THEME),
 			scheduledFor: dateOrNull(form.get('scheduledFor')),
 			nominateUntil: dateOrNull(form.get('nominateUntil')),
 			voteUntil: dateOrNull(form.get('voteUntil')),

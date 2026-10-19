@@ -1,7 +1,7 @@
 /**
  * Fills a throwaway database with a movie night at a chosen stage, for looking at the UI.
  *
- *   npm run mock -- nominating|voting|results|watched
+ *   npm run mock -- nominating|voting|results|watched [theme]
  *
  * Wipes everything but the people and their sign-ins first, so switching stage keeps you logged in. Sign in as `alex` with password `mockpass` (local test account).
  * Only ever point this at a scratch file: it deletes everything.
@@ -26,6 +26,7 @@ const path = process.env.DATABASE_URL ?? './data/mock.db';
 if (!/mock/.test(path))
 	throw new Error(`Refusing to wipe ${path}: the file name must contain "mock".`);
 const phase = process.argv[2] ?? 'nominating';
+const theme = process.argv[3] ?? 'synthwave';
 if (!['nominating', 'voting', 'results', 'watched'].includes(phase))
 	throw new Error('Phase must be nominating, voting, results or watched.');
 
@@ -196,6 +197,7 @@ const ok = (r: { ok: boolean; error?: string }) => {
 };
 const input = (over: Partial<NightInput>): NightInput => ({
 	title: 'Friday Night Flicks',
+	theme,
 	scheduledFor: at(3),
 	nominateUntil: at(1),
 	voteUntil: at(2),
@@ -271,7 +273,14 @@ const created = createNight(
 	db,
 	user.alex,
 	input({
-		title: phase === 'watched' ? 'Neon Nights' : 'Friday Night Flicks',
+		title:
+			phase === 'watched'
+				? 'Neon Nights'
+				: theme === 'halloween'
+					? 'Spooky Saturday'
+					: theme === 'christmas'
+						? 'Christmas Eve'
+						: 'Friday Night Flicks',
 		scheduledFor: at(phase === 'watched' ? -1 : 3)
 	}),
 	new Date(now - 5 * DAY)

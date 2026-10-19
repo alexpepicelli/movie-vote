@@ -61,7 +61,7 @@
 				<RetroGrid depth={144} />
 			</div>
 			<div class="relative flex flex-col items-center gap-3 self-start pt-6">
-				<p class="eyebrow fade text-live [text-shadow:0_0_10px_rgba(69,227,255,0.6)]">
+				<p class="eyebrow fade text-live [text-shadow:0_0_10px_rgb(var(--live-rgb)/0.6)]">
 					Tonight's feature
 				</p>
 				<p class="title font-display text-5xl leading-[0.9] text-sunset sm:text-7xl">

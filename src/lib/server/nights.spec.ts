@@ -20,6 +20,7 @@ import {
 	startVoting,
 	validateNightInput,
 	withdraw,
+	setTheme,
 	type NightInput
 } from './nights';
 import { addToWatchlist } from './watchlist';
@@ -29,6 +30,7 @@ const now = new Date('2026-10-20T09:00:00Z');
 
 const input = (over: Partial<NightInput> = {}): NightInput => ({
 	title: 'Friday',
+	theme: 'synthwave',
 	scheduledFor: null,
 	nominateUntil: null,
 	voteUntil: null,
@@ -68,6 +70,8 @@ describe('creating nights', () => {
 	it('validates settings', () => {
 		expect(validateNightInput(input({ title: '' }), now)).toMatch(/title/);
 		expect(validateNightInput(input({ maxVotes: 0 }), now)).toMatch(/Votes/);
+		expect(validateNightInput(input({ theme: 'nope' }), now)).toMatch(/theme/i);
+		expect(validateNightInput(input({ theme: 'halloween' }), now)).toBeNull();
 		expect(validateNightInput(input({ nominateUntil: new Date(now.getTime() - 1) }), now)).toMatch(
 			/future/
 		);
@@ -324,6 +328,14 @@ describe('deadlines', () => {
 			{ nightId: id, to: 'closed' }
 		]);
 		expect(getNight(db, id)?.winnerTmdbId).toBeNull(); // nobody nominated
+	});
+
+	it('lets the theme change after the night is created, to a known theme only', () => {
+		const { db, night } = setup();
+		expect(night.theme).toBe('synthwave');
+		expect(setTheme(db, night.id, 'halloween')).toEqual({ ok: true });
+		expect(db.select().from(nights).where(eq(nights.id, night.id)).get()?.theme).toBe('halloween');
+		expect(setTheme(db, night.id, 'nope')).toMatchObject({ ok: false });
 	});
 
 	it('cancels a night and frees the slot for a new one', () => {

@@ -1,10 +1,23 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
+	import NightTitle from '#lib/components/NightTitle.svelte';
+	import SynthScene from '#lib/components/SynthScene.svelte';
+	import { DEFAULT_THEME, THEMES } from '#lib/themes.js';
+	import { themePreview } from '#lib/theme-preview.svelte.js';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
 	let pending = $state(false);
+
+	// Choosing a theme re-skins the whole page straight away.
+	$effect(() => {
+		themePreview.id = String(form?.values?.theme ?? DEFAULT_THEME);
+		return () => (themePreview.id = null);
+	});
+
+	// The title card below previews what's typed.
+	let typed = $state<string | null>(null);
 
 	const v = (name: string, fallback = '') => String(form?.values?.[name] ?? fallback);
 	const checked = (name: string, fallback: boolean) =>
@@ -38,6 +51,16 @@
 				};
 			}}
 		>
+			<div class="card relative overflow-hidden p-5" aria-label="Title card preview">
+				<SynthScene />
+				<div class="relative pt-20">
+					<NightTitle
+						title={(typed ?? v('title', 'Movie night')) || 'Movie night'}
+						label="Nominating"
+					/>
+				</div>
+			</div>
+
 			<label class="block">
 				<span class="text-sm text-muted">Title</span>
 				<input
@@ -45,9 +68,42 @@
 					required
 					maxlength="60"
 					value={v('title', 'Movie night')}
+					oninput={(e) => (typed = e.currentTarget.value)}
 					class="field"
 				/>
 			</label>
+
+			<fieldset>
+				<legend class="text-sm text-muted">Theme</legend>
+				<div class="mt-1 grid gap-3 sm:grid-cols-2">
+					{#each THEMES as t (t.id)}
+						<label class="theme-option">
+							<input
+								type="radio"
+								name="theme"
+								value={t.id}
+								checked={v('theme', DEFAULT_THEME) === t.id}
+								onchange={() => (themePreview.id = t.id)}
+								class="sr-only"
+							/>
+							<span class="card flex items-center gap-3 p-3 transition">
+								<span class="flex -space-x-1.5">
+									{#each t.swatch as color (color)}
+										<span
+											class="size-6 rounded-full ring-2 ring-panel"
+											style:background-color={color}
+										></span>
+									{/each}
+								</span>
+								<span>
+									<span class="block font-semibold">{t.name}</span>
+									<span class="block text-xs text-muted">{t.blurb}</span>
+								</span>
+							</span>
+						</label>
+					{/each}
+				</div>
+			</fieldset>
 
 			<label class="block">
 				<span class="text-sm text-muted">When are you watching? (optional)</span>

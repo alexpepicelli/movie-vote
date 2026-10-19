@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onDestroy } from 'svelte';
 	import RetroGrid from '#lib/components/RetroGrid.svelte';
 	import SynthScene from '#lib/components/SynthScene.svelte';
 	import { enhance, type SubmitFunction } from '$app/forms';
@@ -19,9 +20,12 @@
 	import Avatar from '#lib/components/Avatar.svelte';
 	import AvatarStack from '#lib/components/AvatarStack.svelte';
 	import { cardMovie, displayStatus, type StatusInput } from '#lib/status.js';
+	import { THEMES } from '#lib/themes.js';
+	import { themePreview } from '#lib/theme-preview.svelte.js';
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
+	onDestroy(() => (themePreview.id = null));
 
 	type PickItem = {
 		movie: Parameters<typeof cardMovie>[0];
@@ -139,7 +143,7 @@
 		{#each Array.from({ length: total }, (_, n) => n) as i (i)}
 			<span
 				class="size-2.5 rounded-full transition {i < used
-					? 'bg-accent shadow-[0_0_8px_rgba(255,79,154,0.7)]'
+					? 'bg-accent shadow-[0_0_8px_rgb(var(--accent-rgb)/0.7)]'
 					: 'border-[1.5px] border-muted/50'}"
 			></span>
 		{/each}
@@ -158,7 +162,7 @@
 				{#if night.scheduledFor}<span class="text-ink"><LocalTime date={night.scheduledFor} /></span
 					>{/if}
 				{#if deadline}
-					<span class="text-live [text-shadow:0_0_10px_rgba(69,227,255,0.5)]"
+					<span class="text-live [text-shadow:0_0_10px_rgb(var(--live-rgb)/0.5)]"
 						>closes in <Countdown to={deadline} format="clock" /></span
 					>
 				{/if}
@@ -224,6 +228,29 @@
 						<button disabled={busy !== null} class="btn">We watched it</button>
 					</form>
 				{/if}
+				<form
+					method="POST"
+					action="?/setTheme"
+					use:enhance={keep('theme', () => (themePreview.id = null))}
+				>
+					<label class="flex items-center justify-between gap-3 text-sm">
+						<span class="text-muted">Theme</span>
+						<select
+							name="theme"
+							class="field mt-0 w-auto py-1.5"
+							value={night.theme}
+							onchange={(e) => {
+								themePreview.id = e.currentTarget.value;
+								e.currentTarget.form?.requestSubmit();
+							}}
+							disabled={busy !== null}
+						>
+							{#each THEMES as t (t.id)}
+								<option value={t.id}>{t.name}</option>
+							{/each}
+						</select>
+					</label>
+				</form>
 				<form
 					method="POST"
 					action="?/cancel"
@@ -715,7 +742,7 @@
 										<div class="mt-1.5 h-1.5 overflow-hidden rounded-full bg-raised">
 											<div
 												class="bar h-full rounded-full {i === 0
-													? 'bg-gradient-to-r from-[#ff8a4c] to-accent'
+													? 'bg-gradient-to-r from-[var(--btn-from)] to-accent'
 													: 'bg-muted/45'}"
 												style="width: {(Math.max(0, entry.votes?.score ?? 0) / topScore) *
 													100}%; animation-delay: {i * 80}ms"

@@ -1,6 +1,8 @@
 @import 'tailwindcss';
+@import './themes.css';
 
-/* "Midnight Movie": a clean app with an 80s blockbuster glow (PLAN.md §12). */
+/* "Midnight Movie": a clean app with an 80s blockbuster glow (PLAN.md §12).
+   These are the default (synthwave) values; themes.css overrides them per night. */
 @theme {
 	--color-screen: #0d0b1e;
 	--color-panel: #16132e;
@@ -37,11 +39,17 @@ html {
 
 body {
 	@apply bg-screen font-sans text-ink antialiased;
+}
+
+/* The themed shell around every page (data-theme is set on it, see +layout.svelte). */
+.app {
 	min-height: 100dvh;
+	color: var(--color-ink);
+	background-color: var(--color-screen);
 	background-image:
-		radial-gradient(60rem 28rem at 50% -8rem, rgba(255, 79, 154, 0.22), transparent 70%),
-		radial-gradient(40rem 24rem at 100% 30%, rgba(69, 227, 255, 0.08), transparent 70%),
-		radial-gradient(40rem 24rem at 0% 60%, rgba(150, 80, 255, 0.1), transparent 70%);
+		radial-gradient(60rem 28rem at 50% -8rem, rgb(var(--bg-glow-a) / 0.22), transparent 70%),
+		radial-gradient(40rem 24rem at 100% 30%, rgb(var(--bg-glow-b) / 0.08), transparent 70%),
+		radial-gradient(40rem 24rem at 0% 60%, rgb(var(--bg-glow-c) / 0.1), transparent 70%);
 	background-attachment: fixed;
 }
 
@@ -90,19 +98,19 @@ body::after {
 
 	h1.font-display,
 	h2.font-display {
-		filter: drop-shadow(0 0 14px rgba(255, 79, 154, 0.45));
+		filter: drop-shadow(0 0 14px rgb(var(--accent-rgb) / 0.45));
 	}
 
 	/* Night names: pink neon script, with a yellow caps line tucked under its tails. */
 	.neon-script {
 		font-family: var(--font-script);
 		line-height: 1.1;
-		color: #ffd6ea;
+		color: var(--script-fill);
 		text-shadow:
-			0 0 4px #fff,
+			0 0 4px var(--script-core),
 			0 0 12px var(--color-accent),
 			0 0 28px var(--color-accent),
-			0 0 56px rgba(255, 42, 122, 0.8);
+			0 0 56px rgb(var(--script-glow) / 0.8);
 		/* Script glyphs overhang their box. */
 		padding-right: 0.1em;
 		position: relative;
@@ -112,9 +120,9 @@ body::after {
 	/* Compact glow for list rows, where the full sign would smear into its neighbours. */
 	.neon-script-sm {
 		text-shadow:
-			0 0 3px #fff,
+			0 0 3px var(--script-core),
 			0 0 9px var(--color-accent),
-			0 0 20px rgba(255, 79, 154, 0.7);
+			0 0 20px rgb(var(--accent-rgb) / 0.7);
 	}
 
 	.neon-caps {
@@ -125,14 +133,14 @@ body::after {
 		font-size: 1.5rem;
 		letter-spacing: 0.12em;
 		text-transform: uppercase;
-		color: #ffd23f;
-		text-shadow: 0 0 14px rgba(255, 210, 63, 0.6);
+		color: var(--caps-color);
+		text-shadow: 0 0 14px rgb(var(--caps-rgb) / 0.6);
 	}
 
 	.text-sunset {
 		background: linear-gradient(
 			180deg,
-			#fff3d6 10%,
+			var(--title-top) 10%,
 			var(--color-sunset) 55%,
 			var(--color-accent) 95%
 		);
@@ -144,14 +152,14 @@ body::after {
 
 	.eyebrow {
 		@apply font-mono text-xs font-bold tracking-[0.2em] text-live uppercase;
-		text-shadow: 0 0 10px rgba(69, 227, 255, 0.7);
+		text-shadow: 0 0 10px rgb(var(--live-rgb) / 0.7);
 	}
 
 	.card {
 		@apply rounded-2xl border border-line bg-panel/90;
 		box-shadow:
-			0 0 0 1px rgba(255, 79, 154, 0.08),
-			0 0 28px -10px rgba(255, 79, 154, 0.35),
+			0 0 0 1px rgb(var(--accent-rgb) / 0.08),
+			0 0 28px -10px rgb(var(--accent-rgb) / 0.35),
 			inset 0 1px 0 rgba(255, 255, 255, 0.04);
 	}
 
@@ -160,12 +168,12 @@ body::after {
 	}
 
 	.btn {
-		@apply flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-4 py-2 font-bold text-on-accent shadow-[0_0_18px_rgba(255,79,154,0.45)] transition disabled:opacity-50 disabled:shadow-none [&:not(:disabled):active]:scale-[0.98] [&:not(:disabled):hover]:shadow-[0_0_30px_rgba(255,79,154,0.75)] [&:not(:disabled):hover]:brightness-110;
-		background-image: linear-gradient(90deg, #ff8a4c, var(--color-accent));
+		@apply flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-4 py-2 font-bold text-on-accent shadow-[0_0_18px_rgb(var(--accent-rgb)/0.45)] transition disabled:opacity-50 disabled:shadow-none [&:not(:disabled):active]:scale-[0.98] [&:not(:disabled):hover]:shadow-[0_0_30px_rgb(var(--accent-rgb)/0.75)] [&:not(:disabled):hover]:brightness-110;
+		background-image: linear-gradient(90deg, var(--btn-from), var(--color-accent));
 	}
 
 	.btn-ghost {
-		@apply flex min-h-11 items-center justify-center gap-2 rounded-xl border border-line px-4 py-2 font-semibold text-ink transition disabled:opacity-50 [&:not(:disabled):active]:scale-[0.98] [&:not(:disabled):hover]:border-live [&:not(:disabled):hover]:text-live [&:not(:disabled):hover]:shadow-[0_0_16px_rgba(69,227,255,0.35)];
+		@apply flex min-h-11 items-center justify-center gap-2 rounded-xl border border-line px-4 py-2 font-semibold text-ink transition disabled:opacity-50 [&:not(:disabled):active]:scale-[0.98] [&:not(:disabled):hover]:border-live [&:not(:disabled):hover]:text-live [&:not(:disabled):hover]:shadow-[0_0_16px_rgb(var(--live-rgb)/0.35)];
 	}
 
 	/* The 80s horizon behind hero cards: a striped sun (the drifting grid is RetroGrid.svelte). */
@@ -183,7 +191,7 @@ body::after {
 				var(--sun-gap, var(--color-panel)) 82% 87%,
 				transparent 87%
 			),
-			linear-gradient(180deg, #ffd27a, #ff8a4c 45%, var(--color-accent));
+			var(--sun-art);
 	}
 
 	/* Hero scene (SynthScene.svelte): fades into the card at its lower edge. */
@@ -191,9 +199,9 @@ body::after {
 		mask-image: linear-gradient(180deg, #000 70%, transparent);
 		background: linear-gradient(
 			180deg,
-			rgba(120, 60, 200, 0.18),
-			rgba(255, 79, 154, 0.2) 55%,
-			rgba(255, 138, 76, 0.14)
+			rgb(var(--sky-a) / 0.18),
+			rgb(var(--sky-b) / 0.2) 55%,
+			rgb(var(--sky-c) / 0.14)
 		);
 	}
 
@@ -214,23 +222,12 @@ body::after {
 
 	.synth-sun {
 		border-radius: 9999px;
-		background: linear-gradient(180deg, #ffe08a, #ff8a4c 45%, var(--color-accent));
+		background: var(--sun-art);
 		box-shadow:
-			0 0 40px rgba(255, 138, 76, 0.55),
-			0 0 110px rgba(255, 79, 154, 0.45);
+			0 0 40px rgb(var(--sun-glow-a) / 0.55),
+			0 0 110px rgb(var(--sun-glow-b) / 0.45);
 		/* Bands widen toward the horizon, like the sun sinking behind the grid. */
-		mask-image: linear-gradient(
-			180deg,
-			#000 0 48%,
-			transparent 48% 51%,
-			#000 51% 60%,
-			transparent 60% 64%,
-			#000 64% 72%,
-			transparent 72% 77%,
-			#000 77% 84%,
-			transparent 84% 91%,
-			#000 91%
-		);
+		mask-image: var(--sun-mask);
 		animation: sun-pulse 5s ease-in-out infinite alternate;
 	}
 
@@ -240,17 +237,34 @@ body::after {
 			90deg,
 			transparent,
 			var(--color-live) 20%,
-			#fff 50%,
+			var(--horizon-core) 50%,
 			var(--color-accent) 80%,
 			transparent
 		);
 		box-shadow:
 			0 0 12px var(--color-accent),
-			0 -6px 40px rgba(255, 79, 154, 0.55);
+			0 -6px 40px rgb(var(--accent-rgb) / 0.55);
+	}
+
+	/* Theme-specific scene art (bats, gravestones…) is drawn onto this layer by themes.css. */
+	.scene-deco {
+		position: absolute;
+		inset: 0;
+	}
+
+	/* The theme picker on the new-night form. */
+	.theme-option:has(input:checked) .card {
+		border-color: var(--color-accent);
+		box-shadow: 0 0 22px rgb(var(--accent-rgb) / 0.55);
+	}
+
+	.theme-option:has(input:focus-visible) .card {
+		outline: 2px solid var(--color-accent);
+		outline-offset: 3px;
 	}
 
 	.link {
-		@apply font-semibold text-accent transition hover:text-[#ff8cc0];
+		@apply font-semibold text-accent transition hover:brightness-125;
 	}
 }
 
