@@ -1,5 +1,5 @@
 <script lang="ts">
-	import RetroGrid from '#lib/components/RetroGrid.svelte';
+	import SynthScene from '#lib/components/SynthScene.svelte';
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
 	import type { PageProps } from './$types';
@@ -11,11 +11,8 @@
 <svelte:head><title>Join · Votarr</title></svelte:head>
 
 <div class="card relative mx-auto mt-4 max-w-sm overflow-hidden p-6 sm:mt-10 sm:p-8">
-	<div class="pointer-events-none absolute inset-x-0 top-0 h-28 overflow-hidden" aria-hidden="true">
-		<div class="retro-sun -top-8 right-6 size-32 opacity-25"></div>
-		<RetroGrid depth={64} class="opacity-60" />
-	</div>
-	<div class="relative pt-16">
+	<SynthScene />
+	<div class="relative pt-40">
 		{#if data.state === 'valid'}
 			<h1 class="font-display text-4xl text-sunset">You're invited</h1>
 			<p class="mt-2 text-sm text-muted">Make an account to add films and vote on movie night.</p>

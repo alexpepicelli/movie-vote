@@ -4,10 +4,22 @@
 	// The 80s perspective floor that drifts toward the viewer. Drawn on a canvas because the
 	// CSS version (a masked plane under a 3D transform) flickers in Chrome's compositor.
 	// `depth` is the floor's length before it's tilted away, in px.
-	let { depth = 64, class: className = '' }: { depth?: number; class?: string } = $props();
+	// `tilt` (degrees) and `perspective` shape the floor; `height` reports how tall it ends up.
+	let {
+		depth = 64,
+		tilt = 58,
+		perspective = 170,
+		// eslint-disable-next-line no-useless-assignment -- written by the effect below for bind:height
+		height = $bindable(),
+		class: className = ''
+	}: {
+		depth?: number;
+		tilt?: number;
+		perspective?: number;
+		height?: number;
+		class?: string;
+	} = $props();
 
-	const PERSPECTIVE = 170;
-	const TILT = (58 * Math.PI) / 180;
 	const CELL = 30;
 	const LINE = 1.5;
 	const PERIOD_MS = 1400;
@@ -15,13 +27,16 @@
 	// The floor fades in from the horizon, fully opaque 65% of the way toward the viewer.
 	const FADE = 0.65;
 
-	const cos = Math.cos(TILT);
-	const sin = Math.sin(TILT);
+	const cos = $derived(Math.cos((tilt * Math.PI) / 180));
+	const sin = $derived(Math.sin((tilt * Math.PI) / 180));
 	// How much a point `d` px along the floor shrinks, and how high above the bottom it lands.
-	const scaleAt = (d: number) => PERSPECTIVE / (PERSPECTIVE + d * sin);
+	const scaleAt = (d: number) => perspective / (perspective + d * sin);
 	const riseAt = (d: number) => d * cos * scaleAt(d);
 
-	const height = $derived(riseAt(depth));
+	const floorH = $derived(riseAt(depth));
+	$effect(() => {
+		height = floorH;
+	});
 
 	let canvas: HTMLCanvasElement;
 
@@ -101,6 +116,6 @@
 <canvas
 	bind:this={canvas}
 	class="absolute inset-x-0 bottom-0 w-full {className}"
-	style:height="{height}px"
+	style:height="{floorH}px"
 	aria-hidden="true"
 ></canvas>

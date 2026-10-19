@@ -1,6 +1,7 @@
 <script lang="ts">
 	import './layout.css';
 	import favicon from '#lib/assets/favicon.svg';
+	import logo from '#lib/assets/logo.svg';
 	import type { LayoutProps } from './$types';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
@@ -64,7 +65,7 @@
 	<link rel="preconnect" href="https://fonts.googleapis.com" />
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
 	<link
-		href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@1,700;1,800&family=Manrope:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap"
+		href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800&family=Yellowtail&family=Exo+2:ital,wght@0,400;0,500;0,600;0,700;0,800;1,800&family=Share+Tech+Mono&display=swap"
 		rel="stylesheet"
 	/>
 </svelte:head>
@@ -72,8 +73,8 @@
 <div class="mx-auto flex min-h-dvh max-w-6xl flex-col px-4 sm:px-6">
 	<header class="flex items-center justify-between gap-4 py-4">
 		<a href={resolve('/')} class="flex items-center gap-2" aria-label="Votarr home">
-			<img src={favicon} alt="" class="size-10" width="40" height="40" />
-			<span class="font-display text-2xl leading-none text-sunset">VOTARR</span>
+			<img src={logo} alt="" class="size-10" width="40" height="40" />
+			<span class="font-display text-2xl leading-none text-sunset drop-shadow-[0_0_12px_rgba(255,79,154,0.6)]">VOTARR</span>
 		</a>
 
 		{#if data.user}
@@ -83,8 +84,8 @@
 					<a
 						href={link.href}
 						aria-current={active ? 'page' : undefined}
-						class="flex items-center gap-2 rounded-lg px-3 py-2 font-semibold transition {active
-							? 'bg-panel text-ink'
+						class="flex items-center gap-2 px-3 py-2 font-semibold transition {active
+							? 'text-ink shadow-[inset_0_-2px_0_var(--color-accent)] [text-shadow:0_0_12px_rgba(255,79,154,0.8)]'
 							: 'text-muted hover:text-ink'}"
 					>
 						<Icon name={link.icon} size={18} class={active ? 'text-accent' : ''} />
@@ -122,7 +123,7 @@
 {#if data.user}
 	<nav
 		aria-label="Main"
-		class="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-screen/95 pb-[env(safe-area-inset-bottom)] backdrop-blur sm:hidden"
+		class="fixed inset-x-0 bottom-0 z-20 border-t border-accent/30 bg-screen/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_30px_-12px_rgba(255,79,154,0.5)] backdrop-blur sm:hidden"
 	>
 		<ul class="mx-auto flex max-w-md justify-around">
 			{#each links as link (link.href)}
@@ -132,8 +133,8 @@
 						href={link.href}
 						aria-current={active ? 'page' : undefined}
 						class="flex min-h-14 min-w-14 flex-col items-center justify-center gap-1 px-2 text-[11px] font-semibold {active
-							? 'text-accent'
-							: 'text-muted'}"
+							? 'text-accent [filter:drop-shadow(0_0_6px_rgba(255,79,154,0.8))]'
+								: 'text-muted'}"
 					>
 						<Icon name={link.icon} size={22} />
 						{link.label}

@@ -1,17 +1,17 @@
 <script lang="ts">
 	import RetroGrid from '#lib/components/RetroGrid.svelte';
+	import SynthScene from '#lib/components/SynthScene.svelte';
 	import { enhance, type SubmitFunction } from '$app/forms';
 	import { resolve } from '$app/paths';
 	import Countdown from '#lib/components/Countdown.svelte';
 	import Icon from '#lib/components/Icon.svelte';
 	import LocalTime from '#lib/components/LocalTime.svelte';
+	import NightTitle from '#lib/components/NightTitle.svelte';
 	import MovieCard from '#lib/components/MovieCard.svelte';
 	import Poster from '#lib/components/Poster.svelte';
 	import SectionHeader from '#lib/components/SectionHeader.svelte';
 	import SegmentedControl from '#lib/components/SegmentedControl.svelte';
-	import StatTile from '#lib/components/StatTile.svelte';
 	import StatusBadge from '#lib/components/StatusBadge.svelte';
-	import Stepper from '#lib/components/Stepper.svelte';
 	import Toast from '#lib/components/Toast.svelte';
 	import VoteControl from '#lib/components/VoteControl.svelte';
 	import WinnerReveal from '#lib/components/WinnerReveal.svelte';
@@ -32,6 +32,12 @@
 	const isOwner = $derived(data.user?.role === 'owner');
 	const open = $derived(night.status === 'nominating' || night.status === 'voting');
 	const finished = $derived(night.status === 'closed' || night.status === 'watched');
+
+	const statusLabel = $derived(
+		{ draft: 'Draft', nominating: 'Nominating', voting: 'Voting', closed: 'Results', watched: 'Watched' }[
+			night.status
+		]
+	);
 
 	const nominationsLeft = $derived(night.maxNominations - data.myNominationCount);
 	const votesLeft = $derived(night.maxVotes - data.myVoteCount);
@@ -139,24 +145,22 @@
 <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start lg:gap-x-10">
 	<!-- ───────────── Header ───────────── -->
 	<header class="card relative animate-rise overflow-hidden p-5 sm:p-6 lg:col-start-1">
-		<div
-			class="pointer-events-none absolute inset-x-0 top-0 h-28 overflow-hidden"
-			aria-hidden="true"
-		>
-			<div class="retro-sun -top-6 right-4 size-32 opacity-25"></div>
-			<RetroGrid depth={64} class="opacity-60" />
-		</div>
-		<div class="relative flex flex-col gap-4 pt-8">
+		<SynthScene />
+		<div class="relative flex flex-col gap-4 pt-20">
 			<div>
-				<p class="eyebrow">Movie night</p>
-				<h1 class="mt-1 font-display text-4xl leading-[0.95] text-sunset sm:text-5xl">
-					{night.title}
-				</h1>
-				{#if night.scheduledFor}
-					<p class="mt-1.5 text-sm text-muted"><LocalTime date={night.scheduledFor} /></p>
-				{/if}
+				<NightTitle title={night.title} label={statusLabel} />
 			</div>
-			<Stepper status={night.status} />
+			<p class="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-sm text-muted">
+				{#if night.scheduledFor}<span class="text-ink"><LocalTime date={night.scheduledFor} /></span>{/if}
+						{#if deadline}
+							<span class="text-live [text-shadow:0_0_10px_rgba(69,227,255,0.5)]"
+								>closes in <Countdown to={deadline} format="clock" /></span
+							>
+						{/if}
+						{#if night.status === 'voting'}
+							<span>{data.voterCount}/{data.memberCount} voted</span>
+						{/if}
+					</p>
 		</div>
 	</header>
 
@@ -165,34 +169,13 @@
 		class="flex animate-rise flex-col gap-4 [animation-delay:60ms] lg:sticky lg:top-6 lg:col-start-2 lg:row-span-2 lg:row-start-1"
 	>
 		{#if open}
-			<div class="grid grid-cols-2 gap-3">
-				<StatTile label="Closes in" live={!!deadline}>
-					{#if deadline}<Countdown to={deadline} format="clock" />{:else}Owner{/if}
-				</StatTile>
-				{#if night.status === 'voting'}
-					<StatTile label="Voted"
-						>{data.voterCount}<span class="ml-1 text-base text-muted"
-							>/&nbsp;{data.memberCount}</span
-						></StatTile
-					>
-				{:else}
-					<StatTile label="Nominated">{data.entries.length}</StatTile>
-				{/if}
-			</div>
-			{#if deadline}
-				<p class="-mt-2 text-xs text-muted">
-					{night.status === 'voting' ? 'Voting closes' : 'Nominations close'}
-					<LocalTime date={deadline} />
-				</p>
-			{/if}
-
 			<div class="card hidden items-center justify-between gap-3 p-4 lg:flex">
 				{#if night.status === 'voting'}
-					<span class="text-sm"><strong>{votesLeft} of {night.maxVotes}</strong> votes left</span>
+					<span class="text-sm"><strong>{votesLeft}</strong> votes left</span>
 					{@render dots(data.myVoteCount, night.maxVotes)}
 				{:else}
 					<span class="text-sm"
-						><strong>{nominationsLeft} of {night.maxNominations}</strong> picks left</span
+						><strong>{nominationsLeft}</strong> picks left</span
 					>
 					{@render dots(data.myNominationCount, night.maxNominations)}
 				{/if}
@@ -203,7 +186,6 @@
 
 		{#if isOwner && night.status !== 'watched'}
 			<div class="card flex flex-col gap-3 border-dashed p-4">
-				<p class="font-mono text-[11px] tracking-wider text-muted uppercase">Owner</p>
 				{#if night.status === 'nominating'}
 					<form
 						method="POST"
@@ -215,7 +197,7 @@
 									'startVoting'
 								)}
 					>
-						<button disabled={busy !== null} class="btn">Start voting now</button>
+						<button disabled={busy !== null} class="btn">Start voting</button>
 					</form>
 				{:else if night.status === 'voting'}
 					<form
@@ -230,7 +212,7 @@
 					</form>
 				{:else if night.status === 'closed' && winner}
 					<form method="POST" action="?/markWatched" use:enhance={keep('markWatched')}>
-						<button disabled={busy !== null} class="btn">We watched it: open ratings</button>
+						<button disabled={busy !== null} class="btn">We watched it</button>
 					</form>
 				{/if}
 				<form
@@ -262,7 +244,7 @@
 		{#if night.status === 'nominating'}
 			<!-- Nominating -->
 			<section>
-				<SectionHeader title="Nominated so far">
+				<SectionHeader title="Nominated">
 					<span class="font-mono text-muted">{data.entries.length}</span>
 				</SectionHeader>
 				{#if data.entries.length}
@@ -299,21 +281,16 @@
 						{/each}
 					</ul>
 				{:else}
-					<p class="mt-3 text-sm text-muted">Nothing yet. Be the first to pick something.</p>
+					<p class="mt-3 text-sm text-muted">Nothing yet.</p>
 				{/if}
 			</section>
 
 			{#if data.picker}
 				<section class="card p-4 sm:p-6">
 					<h2 class="font-display text-2xl">
-						{nominationsLeft > 0 ? 'Pick your nominations' : 'You’re all set'}
+						{nominationsLeft > 0 ? 'Nominate' : 'You’re all set'}
 					</h2>
 					{#if nominationsLeft > 0}
-						<p class="mt-1 text-sm text-muted">
-							{plural(nominationsLeft, 'pick')} left. Your watchlist comes first, the films you've wanted
-							longest at the front.
-						</p>
-
 						{#snippet pickGrid(items: PickItem[])}
 							<ul class="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">
 								{#each items as { movie, status, wantCount } (movie.tmdbId)}
@@ -341,19 +318,15 @@
 							</ul>
 						{/snippet}
 
-						<h3 class="mt-6 font-bold">From your watchlist</h3>
+						<h3 class="mt-6 font-bold">Your watchlist</h3>
 						{#if data.picker.mine.length}
 							{@render pickGrid(data.picker.mine.map((m) => ({ movie: m, status: m })))}
 						{:else}
-							<p class="mt-1 text-sm text-muted">
-								Nothing left on your <a href={resolve('/discover?tab=mine')} class="link"
-									>watchlist</a
-								> to nominate. Try below.
-							</p>
+							<p class="mt-1 text-sm text-muted">Nothing left on your watchlist.</p>
 						{/if}
 
 						{#if data.picker.group.length}
-							<h3 class="mt-8 font-bold">Friends want these</h3>
+							<h3 class="mt-8 font-bold">Friends want</h3>
 							{@render pickGrid(
 								data.picker.group.map((g) => ({
 									movie: g.movie,
@@ -364,7 +337,7 @@
 						{/if}
 
 						{#if data.picker.searchEnabled}
-							<h3 class="mt-8 font-bold">Or search for anything</h3>
+							<h3 class="mt-8 font-bold">Search</h3>
 							<form
 								method="GET"
 								class="mt-2 flex gap-2"
@@ -403,25 +376,16 @@
 							{/if}
 						{/if}
 					{:else}
-						<p class="mt-1 text-sm text-muted">
-							You've used all your nominations. Withdraw one above if you change your mind.
-						</p>
+						<p class="mt-1 text-sm text-muted">All picks used.</p>
 					{/if}
 				</section>
 			{/if}
 		{:else if night.status === 'voting'}
 			<!-- Voting -->
 			<section class="flex flex-col gap-4">
-				<SectionHeader title="Ballot" />
+				<SectionHeader title="Vote" />
 				<p class="-mt-2 text-sm text-muted">
-					You have {night.maxVotes} votes: give a film ▲ if you want it, ▼ if you don't. Highest score
-					wins, and you can change your mind until voting closes.
-					{#if night.secretBallot}
-						Secret ballot: scores stay hidden until voting closes, and nobody sees who voted for
-						what.
-					{:else}
-						Votes are public: you'll see who backs what as it happens.
-					{/if}
+					▲ want it, ▼ don't. {night.secretBallot ? 'Secret ballot.' : 'Votes are public.'}
 				</p>
 				<SegmentedControl
 					label="Show"
@@ -432,7 +396,7 @@
 							onclick: () => (filter = 'all')
 						},
 						{
-							label: `Your votes (${data.myVoteCount})`,
+							label: `Mine ${data.myVoteCount}`,
 							active: filter === 'mine',
 							onclick: () => (filter = 'mine')
 						}
@@ -462,9 +426,6 @@
 								<div class="flex min-w-0 flex-1 flex-col gap-1">
 									<h3 class="leading-tight font-bold sm:text-lg">{entry.movie.title}</h3>
 									<p class="text-xs text-muted">{meta(entry.movie)}</p>
-									{#if entry.movie.overview}
-										<p class="line-clamp-2 text-sm text-ink/80">{entry.movie.overview}</p>
-									{/if}
 									<div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
 										<StatusBadge status={entry.movie} />
 										<span class="flex items-center gap-1.5">
@@ -507,9 +468,9 @@
 						{/each}
 					</ul>
 				{:else if filter === 'mine'}
-					<p class="py-10 text-center text-muted">You haven't voted yet.</p>
+					<p class="py-10 text-center text-muted">No votes yet.</p>
 				{:else}
-					<p class="text-sm text-muted">Nothing was nominated for this night.</p>
+					<p class="text-sm text-muted">Nothing nominated.</p>
 				{/if}
 
 				<form method="POST" action="?/vote" bind:this={undoForm} use:enhance={keep('undo')} hidden>
@@ -529,7 +490,7 @@
 					{@render dots(data.myVoteCount, night.maxVotes)}
 					<span class="flex-1 text-sm font-semibold"
 						>{votesLeft === 0
-							? `All ${night.maxVotes} votes used`
+							? 'All votes used'
 							: `${plural(votesLeft, 'vote')} left`}</span
 					>
 					<a href={resolve('/')} class="btn min-h-10 w-auto px-5">Done</a>
@@ -567,7 +528,7 @@
 						</a>
 						<div class="relative min-w-0 self-center">
 							<p class="eyebrow">
-								{night.status === 'watched' ? 'We watched' : "Tonight's feature"}
+								{night.status === 'watched' ? 'We watched' : 'Winner'}
 							</p>
 							<h2 class="mt-1 font-display text-4xl leading-[0.95] text-sunset sm:text-5xl">
 								{winner.movie.title}

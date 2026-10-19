@@ -14,9 +14,10 @@
 	--color-danger: #ff7a6b;
 	--color-on-accent: #1a0716;
 
-	--font-sans: 'Manrope', ui-sans-serif, system-ui, sans-serif;
-	--font-display: 'Kanit', ui-sans-serif, system-ui, sans-serif;
-	--font-mono: 'Space Mono', ui-monospace, monospace;
+	--font-sans: 'Exo 2', ui-sans-serif, system-ui, sans-serif;
+	--font-display: 'Orbitron', ui-sans-serif, system-ui, sans-serif;
+	--font-script: 'Yellowtail', cursive;
+	--font-mono: 'Share Tech Mono', ui-monospace, monospace;
 
 	--animate-rise: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 
@@ -34,6 +35,22 @@ html {
 
 body {
 	@apply bg-screen font-sans text-ink antialiased;
+	min-height: 100dvh;
+	background-image:
+		radial-gradient(60rem 28rem at 50% -8rem, rgba(255, 79, 154, 0.22), transparent 70%),
+		radial-gradient(40rem 24rem at 100% 30%, rgba(69, 227, 255, 0.08), transparent 70%),
+		radial-gradient(40rem 24rem at 0% 60%, rgba(150, 80, 255, 0.1), transparent 70%);
+	background-attachment: fixed;
+}
+
+/* Faint CRT scanlines over everything. */
+body::after {
+	content: '';
+	position: fixed;
+	inset: 0;
+	pointer-events: none;
+	z-index: 50;
+	background: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 3px);
 }
 
 @layer base {
@@ -58,11 +75,52 @@ body {
 }
 
 @layer components {
-	/* Titles are always the heavy italic. */
+	/* Titles are always heavy Orbitron; it runs wide, so sizes are trimmed to match. */
 	.font-display {
-		font-style: italic;
 		font-weight: 800;
 		letter-spacing: 0;
+		zoom: 0.8;
+	}
+
+	h1.font-display,
+	h2.font-display {
+		filter: drop-shadow(0 0 14px rgba(255, 79, 154, 0.45));
+	}
+
+	/* Night names: pink neon script, with a yellow caps line tucked under its tails. */
+	.neon-script {
+		font-family: var(--font-script);
+		line-height: 1.1;
+		color: #ffd6ea;
+		text-shadow:
+			0 0 4px #fff,
+			0 0 12px var(--color-accent),
+			0 0 28px var(--color-accent),
+			0 0 56px rgba(255, 42, 122, 0.8);
+		/* Script glyphs overhang their box. */
+		padding-right: 0.1em;
+		position: relative;
+		z-index: 1;
+	}
+
+	/* Compact glow for list rows, where the full sign would smear into its neighbours. */
+	.neon-script-sm {
+		text-shadow:
+			0 0 3px #fff,
+			0 0 9px var(--color-accent),
+			0 0 20px rgba(255, 79, 154, 0.7);
+	}
+
+	.neon-caps {
+		margin: -0.55em 0 0 0.5rem;
+		font-family: var(--font-sans);
+		font-style: italic;
+		font-weight: 800;
+		font-size: 1.5rem;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: #ffd23f;
+		text-shadow: 0 0 14px rgba(255, 210, 63, 0.6);
 	}
 
 	.text-sunset {
@@ -79,11 +137,16 @@ body {
 	}
 
 	.eyebrow {
-		@apply font-mono text-xs font-bold tracking-[0.2em] text-accent uppercase;
+		@apply font-mono text-xs font-bold tracking-[0.2em] text-live uppercase;
+		text-shadow: 0 0 10px rgba(69, 227, 255, 0.7);
 	}
 
 	.card {
-		@apply rounded-2xl border border-line bg-panel;
+		@apply rounded-2xl border border-line bg-panel/90;
+		box-shadow:
+			0 0 0 1px rgba(255, 79, 154, 0.08),
+			0 0 28px -10px rgba(255, 79, 154, 0.35),
+			inset 0 1px 0 rgba(255, 255, 255, 0.04);
 	}
 
 	.field {
@@ -91,12 +154,12 @@ body {
 	}
 
 	.btn {
-		@apply flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-4 py-2 font-bold text-on-accent transition disabled:opacity-50 disabled:shadow-none [&:not(:disabled):active]:scale-[0.98] [&:not(:disabled):hover]:shadow-[0_8px_26px_rgba(255,79,154,0.35)] [&:not(:disabled):hover]:brightness-110;
+		@apply flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-4 py-2 font-bold text-on-accent transition disabled:opacity-50 disabled:shadow-none [&:not(:disabled):active]:scale-[0.98] shadow-[0_0_18px_rgba(255,79,154,0.45)] [&:not(:disabled):hover]:shadow-[0_0_30px_rgba(255,79,154,0.75)] [&:not(:disabled):hover]:brightness-110;
 		background-image: linear-gradient(90deg, #ff8a4c, var(--color-accent));
 	}
 
 	.btn-ghost {
-		@apply flex min-h-11 items-center justify-center gap-2 rounded-xl border border-line px-4 py-2 font-semibold text-ink transition disabled:opacity-50 [&:not(:disabled):active]:scale-[0.98] [&:not(:disabled):hover]:border-accent;
+		@apply flex min-h-11 items-center justify-center gap-2 rounded-xl border border-line px-4 py-2 font-semibold text-ink transition disabled:opacity-50 [&:not(:disabled):active]:scale-[0.98] [&:not(:disabled):hover]:border-live [&:not(:disabled):hover]:text-live [&:not(:disabled):hover]:shadow-[0_0_16px_rgba(69,227,255,0.35)];
 	}
 
 	/* The 80s horizon behind hero cards: a striped sun (the drifting grid is RetroGrid.svelte). */
@@ -117,8 +180,79 @@ body {
 			linear-gradient(180deg, #ffd27a, #ff8a4c 45%, var(--color-accent));
 	}
 
+	/* Hero scene (SynthScene.svelte): fades into the card at its lower edge. */
+	.synth-scene {
+		mask-image: linear-gradient(180deg, #000 70%, transparent);
+		background: linear-gradient(
+			180deg,
+			rgba(120, 60, 200, 0.18),
+			rgba(255, 79, 154, 0.2) 55%,
+			rgba(255, 138, 76, 0.14)
+		);
+	}
+
+	.synth-stars {
+		position: absolute;
+		inset: 0 0 45% 0;
+		background-image:
+			radial-gradient(1.5px 1.5px at 12% 22%, #fff, transparent),
+			radial-gradient(1px 1px at 27% 58%, #cfd8ff, transparent),
+			radial-gradient(1.5px 1.5px at 41% 14%, #fff, transparent),
+			radial-gradient(1px 1px at 58% 40%, #ffd6ea, transparent),
+			radial-gradient(1.5px 1.5px at 73% 18%, #fff, transparent),
+			radial-gradient(1px 1px at 86% 52%, #cfd8ff, transparent),
+			radial-gradient(1px 1px at 93% 12%, #fff, transparent),
+			radial-gradient(1px 1px at 6% 66%, #ffd6ea, transparent);
+		animation: twinkle 4s ease-in-out infinite alternate;
+	}
+
+	.synth-sun {
+		border-radius: 9999px;
+		background: linear-gradient(180deg, #ffe08a, #ff8a4c 45%, var(--color-accent));
+		box-shadow:
+			0 0 40px rgba(255, 138, 76, 0.55),
+			0 0 110px rgba(255, 79, 154, 0.45);
+		/* Bands widen toward the horizon, like the sun sinking behind the grid. */
+		mask-image: linear-gradient(
+			180deg,
+			#000 0 48%,
+			transparent 48% 51%,
+			#000 51% 60%,
+			transparent 60% 64%,
+			#000 64% 72%,
+			transparent 72% 77%,
+			#000 77% 84%,
+			transparent 84% 91%,
+			#000 91%
+		);
+		animation: sun-pulse 5s ease-in-out infinite alternate;
+	}
+
+	.synth-horizon {
+		height: 3px;
+		background: linear-gradient(90deg, transparent, var(--color-live) 20%, #fff 50%, var(--color-accent) 80%, transparent);
+		box-shadow:
+			0 0 12px var(--color-accent),
+			0 -6px 40px rgba(255, 79, 154, 0.55);
+	}
+
 	.link {
 		@apply font-semibold text-accent transition hover:text-[#ff8cc0];
+	}
+}
+
+@keyframes twinkle {
+	from {
+		opacity: 0.55;
+	}
+}
+
+@keyframes sun-pulse {
+	from {
+		filter: brightness(0.92);
+	}
+	to {
+		filter: brightness(1.08);
 	}
 }
 
