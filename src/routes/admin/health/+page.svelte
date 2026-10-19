@@ -78,8 +78,9 @@
 
 <div class="flex items-center justify-between gap-3">
 	<p class="text-sm text-muted">
-		Server started <LocalTime date={data.server.startedAt} /> · {data.server.timeZone} · Node {data
-			.server.node}
+		Server started <LocalTime date={data.server.startedAt} /> · {data.server
+			.timeZone}{#if data.server.badTz !== null}
+			(TZ “{data.server.badTz}” isn't a recognised time zone){/if} · Node {data.server.node}
 	</p>
 	<button
 		class="shrink-0 rounded-lg border border-line px-3 py-1.5 text-sm enabled:hover:border-accent disabled:opacity-50"

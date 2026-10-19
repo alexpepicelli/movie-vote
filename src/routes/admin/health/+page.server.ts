@@ -8,6 +8,7 @@ import { listenerCount } from '#lib/server/events.js';
 import { checkDatabase, checkService, SERVICE_CHECKS } from '#lib/server/health.js';
 import { configFor } from '#lib/server/integrations.js';
 import { jobStatus } from '#lib/server/jobs.js';
+import { serverTimeZone } from '#lib/server/time-zone.js';
 import { backUpNow } from '#lib/server/poller.js';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -48,7 +49,12 @@ export const load: PageServerLoad = async ({ fetch }) => {
 		server: {
 			startedAt,
 			node: process.version,
-			timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+			timeZone: serverTimeZone,
+			// Set when TZ isn't a zone Node recognises and dates fall back to UTC.
+			badTz:
+				serverTimeZone === Intl.DateTimeFormat().resolvedOptions().timeZone
+					? null
+					: (process.env.TZ ?? '')
 		}
 	};
 };
