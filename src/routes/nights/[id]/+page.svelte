@@ -1,4 +1,5 @@
 <script lang="ts">
+	import RetroGrid from '#lib/components/RetroGrid.svelte';
 	import { enhance, type SubmitFunction } from '$app/forms';
 	import { resolve } from '$app/paths';
 	import Countdown from '#lib/components/Countdown.svelte';
@@ -143,7 +144,7 @@
 			aria-hidden="true"
 		>
 			<div class="retro-sun -top-6 right-4 size-32 opacity-25"></div>
-			<div class="retro-grid h-16 opacity-60"></div>
+			<RetroGrid depth={64} class="opacity-60" />
 		</div>
 		<div class="relative flex flex-col gap-4 pt-8">
 			<div>
@@ -552,7 +553,7 @@
 							class="pointer-events-none absolute inset-x-0 bottom-0 h-24 overflow-hidden"
 							aria-hidden="true"
 						>
-							<div class="retro-grid h-24 opacity-40"></div>
+							<RetroGrid depth={96} class="opacity-40" />
 						</div>
 						<a
 							href={resolve('/movie/[tmdbId]', { tmdbId: String(winner.movie.tmdbId) })}

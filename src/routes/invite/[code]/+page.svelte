@@ -1,4 +1,5 @@
 <script lang="ts">
+	import RetroGrid from '#lib/components/RetroGrid.svelte';
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
 	import type { PageProps } from './$types';
@@ -12,7 +13,7 @@
 <div class="card relative mx-auto mt-4 max-w-sm overflow-hidden p-6 sm:mt-10 sm:p-8">
 	<div class="pointer-events-none absolute inset-x-0 top-0 h-28 overflow-hidden" aria-hidden="true">
 		<div class="retro-sun -top-8 right-6 size-32 opacity-25"></div>
-		<div class="retro-grid h-16 opacity-60"></div>
+		<RetroGrid depth={64} class="opacity-60" />
 	</div>
 	<div class="relative pt-16">
 		{#if data.state === 'valid'}

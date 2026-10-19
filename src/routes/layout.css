@@ -28,12 +28,6 @@
 	}
 }
 
-@keyframes grid-drift {
-	to {
-		background-position: 0 30px;
-	}
-}
-
 html {
 	color-scheme: dark;
 }
@@ -105,7 +99,7 @@ body {
 		@apply flex min-h-11 items-center justify-center gap-2 rounded-xl border border-line px-4 py-2 font-semibold text-ink transition disabled:opacity-50 [&:not(:disabled):active]:scale-[0.98] [&:not(:disabled):hover]:border-accent;
 	}
 
-	/* The 80s horizon behind hero cards: a striped sun over a drifting perspective grid. */
+	/* The 80s horizon behind hero cards: a striped sun (the drifting grid is RetroGrid.svelte). */
 	.retro-sun {
 		position: absolute;
 		border-radius: 9999px;
@@ -121,21 +115,6 @@ body {
 				transparent 87%
 			),
 			linear-gradient(180deg, #ffd27a, #ff8a4c 45%, var(--color-accent));
-	}
-
-	.retro-grid {
-		position: absolute;
-		left: -50%;
-		right: -50%;
-		bottom: 0;
-		transform: perspective(170px) rotateX(58deg);
-		transform-origin: bottom;
-		background-image:
-			linear-gradient(rgba(255, 79, 154, 0.4) 1.5px, transparent 1.5px),
-			linear-gradient(90deg, rgba(255, 79, 154, 0.4) 1.5px, transparent 1.5px);
-		background-size: 30px 30px;
-		mask-image: linear-gradient(180deg, transparent, #000 65%);
-		animation: grid-drift 1.4s linear infinite;
 	}
 
 	.link {

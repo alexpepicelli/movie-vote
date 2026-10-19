@@ -1,4 +1,5 @@
 <script lang="ts">
+	import RetroGrid from '#lib/components/RetroGrid.svelte';
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
 	import Countdown from '#lib/components/Countdown.svelte';
@@ -73,7 +74,7 @@
 					aria-hidden="true"
 				>
 					<div class="retro-sun -top-2 -right-8 size-40 opacity-30 sm:right-8"></div>
-					<div class="retro-grid h-24 opacity-70"></div>
+					<RetroGrid depth={96} class="opacity-70" />
 				</div>
 
 				<div class="relative flex flex-col gap-5 pt-14 sm:pt-16">
@@ -188,7 +189,7 @@
 					aria-hidden="true"
 				>
 					<div class="retro-sun -top-4 right-6 size-36 opacity-25"></div>
-					<div class="retro-grid h-20 opacity-60"></div>
+					<RetroGrid depth={80} class="opacity-60" />
 				</div>
 				<div class="relative pt-16">
 					<h1 class="font-display text-4xl text-sunset sm:text-5xl">

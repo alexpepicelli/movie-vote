@@ -1,4 +1,5 @@
 <script lang="ts">
+	import RetroGrid from './RetroGrid.svelte';
 	import { onMount } from 'svelte';
 
 	let {
@@ -57,7 +58,7 @@
 				<div
 					class="sun retro-sun bottom-28 left-1/2 size-56 -translate-x-1/2 opacity-60 [--sun-gap:#0a0818]"
 				></div>
-				<div class="retro-grid h-36"></div>
+				<RetroGrid depth={144} />
 			</div>
 			<div class="relative flex flex-col items-center gap-3 self-start pt-6">
 				<p class="eyebrow fade text-live [text-shadow:0_0_10px_rgba(69,227,255,0.6)]">
