@@ -48,18 +48,18 @@
 		disabled={locked}
 		class="grid size-11 place-items-center rounded-xl transition enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-35 {myVote ===
 		1
-			? 'bg-gradient-to-b from-[#ff8a4c] to-accent text-on-accent shadow-[0_0_14px_rgba(255,79,154,0.45)]'
-			: 'border border-line text-ink enabled:hover:border-accent enabled:hover:text-accent'}"
+			? 'bg-up text-on-accent shadow-[0_0_14px_rgba(62,224,143,0.5)]'
+			: 'border border-line text-ink enabled:hover:border-up enabled:hover:text-up'}"
 	>
-		<Icon name="up" size={22} stroke={2.8} />
+		<Icon name="check" size={22} stroke={2.8} />
 	</button>
 	<span
 		class="min-h-5 font-mono text-sm font-bold tabular-nums {score === null
 			? 'text-muted'
 			: score > 0
-				? 'text-accent'
+				? 'text-up'
 				: score < 0
-					? 'text-sunset'
+					? 'text-down'
 					: 'text-muted'}"
 		aria-label={scoreText === null ? undefined : `Score ${scoreText}`}
 	>
@@ -75,9 +75,9 @@
 		disabled={locked}
 		class="grid size-11 place-items-center rounded-xl transition enabled:active:scale-90 disabled:cursor-not-allowed disabled:opacity-35 {myVote ===
 		-1
-			? 'bg-sunset text-on-accent shadow-[0_0_14px_rgba(255,179,71,0.45)]'
-			: 'border border-line text-ink enabled:hover:border-sunset enabled:hover:text-sunset'}"
+			? 'bg-down text-on-accent shadow-[0_0_14px_rgba(255,74,92,0.5)]'
+			: 'border border-line text-ink enabled:hover:border-down enabled:hover:text-down'}"
 	>
-		<Icon name="down" size={22} stroke={2.8} />
+		<Icon name="close" size={22} stroke={2.8} />
 	</button>
 </form>

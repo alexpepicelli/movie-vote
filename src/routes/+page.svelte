@@ -29,16 +29,11 @@
 	const showWinner = $derived(!!n?.winner && revealed);
 
 	const eyebrow = $derived(
-		n?.status === 'nominating'
-			? 'Nominating'
-			: n?.status === 'voting'
-				? 'Voting'
-				: 'Results'
+		n?.status === 'nominating' ? 'Nominating' : n?.status === 'voting' ? 'Voting' : 'Results'
 	);
 	const cta = $derived.by(() => {
 		if (!n) return '';
-		if (n.status === 'nominating')
-			return n.nominationsLeft > 0 ? 'Nominate' : 'See nominations';
+		if (n.status === 'nominating') return n.nominationsLeft > 0 ? 'Nominate' : 'See nominations';
 		if (n.status === 'voting') return n.votesLeft > 0 ? 'Vote now' : 'See ballot';
 		return showWinner ? 'See results' : 'Reveal winner';
 	});
@@ -70,7 +65,8 @@
 					</div>
 
 					<p class="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-sm text-muted">
-						{#if n.scheduledFor}<span class="text-ink"><LocalTime date={n.scheduledFor} /></span>{/if}
+						{#if n.scheduledFor}<span class="text-ink"><LocalTime date={n.scheduledFor} /></span
+							>{/if}
 						{#if n.status === 'nominating'}
 							<span><strong class="text-ink">{n.nominationsLeft}</strong> picks left</span>
 							<span>{n.nominationCount} nominated</span>
@@ -150,14 +146,16 @@
 		{:else}
 			<section class="card relative animate-rise overflow-hidden p-6 sm:p-8">
 				<SynthScene />
-				<div class="relative pt-28">
+				<div class="relative pt-24">
 					<h1 class="font-display text-4xl text-sunset sm:text-5xl">
 						Hey {data.user?.displayName}
 					</h1>
-					<p class="mt-2 max-w-md text-muted">
+					<p
+						class="mt-10 font-semibold text-ink [text-shadow:0_1px_10px_var(--color-screen),0_0_4px_var(--color-screen)]"
+					>
 						No movie night planned yet.
 					</p>
-					<div class="mt-5 flex flex-wrap items-center gap-3">
+					<div class="mt-4 flex flex-wrap items-center gap-3">
 						{#if isOwner}
 							<a href={resolve('/nights/new')} class="btn w-auto">Start a movie night</a>
 							<a href={resolve('/discover')} class="btn-ghost">Browse movies</a>

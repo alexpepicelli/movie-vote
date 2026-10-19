@@ -15,7 +15,7 @@
 	<div class="synth-stars"></div>
 	<!-- Sun: only the part above the horizon shows. -->
 	<div
-		class="absolute right-[6%] h-36 w-44 overflow-hidden sm:right-[10%] sm:h-44 sm:w-56"
+		class="absolute right-[4%] h-24 w-32 overflow-hidden sm:right-[10%] sm:h-44 sm:w-56"
 		style:bottom="{floor}px"
 	>
 		<div class="synth-sun aspect-square w-full"></div>

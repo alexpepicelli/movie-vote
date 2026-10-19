@@ -6,6 +6,15 @@
 			"runtimeExecutable": "npm",
 			"runtimeArgs": ["run", "dev", "--", "--port", "5173", "--strictPort"],
 			"port": 5173
+		},
+		{
+			"name": "votarr-mock",
+			"runtimeExecutable": "node",
+			"runtimeArgs": ["node_modules/vite/bin/vite.js", "dev", "--port", "5180", "--strictPort"],
+			"port": 5180,
+			"env": {
+				"DATABASE_URL": "./data/mock.db"
+			}
 		}
 	]
 }

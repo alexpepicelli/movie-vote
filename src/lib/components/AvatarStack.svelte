@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Avatar from './Avatar.svelte';
+	import Icon from './Icon.svelte';
 
 	type Person = { id: string; displayName: string; hasAvatar: boolean; value?: number };
 	let {
@@ -8,7 +9,7 @@
 		size = 26,
 		label
 	}: {
-		/** With `value`, each face gets a ▲ or ▼ badge. */
+		/** With `value`, each face gets an up or down badge. */
 		people: Person[];
 		max?: number;
 		size?: number;
@@ -19,7 +20,7 @@
 	const shown = $derived(people.slice(0, max));
 	const extra = $derived(people.length - shown.length);
 	const describe = (p: Person) =>
-		p.value === undefined ? p.displayName : `${p.displayName} ${p.value > 0 ? '▲' : '▼'}`;
+		p.value === undefined ? p.displayName : `${p.displayName} (${p.value > 0 ? 'check' : 'close'})`;
 </script>
 
 {#if people.length}
@@ -33,10 +34,11 @@
 					<Avatar id={p.id} name={p.displayName} hasAvatar={p.hasAvatar} {size} />
 					{#if p.value !== undefined}
 						<span
-							class="absolute -right-1 -bottom-1 grid size-3.5 place-items-center rounded-full text-[8px] leading-none font-black ring-2 ring-panel {p.value >
+							class="absolute -right-1 -bottom-1 grid size-3.5 place-items-center rounded-full ring-2 ring-panel {p.value >
 							0
-								? 'bg-accent text-on-accent'
-								: 'bg-sunset text-on-accent'}">{p.value > 0 ? '▲' : '▼'}</span
+								? 'bg-up text-on-accent'
+								: 'bg-down text-on-accent'}"
+							><Icon name={p.value > 0 ? 'check' : 'close'} size={10} stroke={4} /></span
 						>
 					{/if}
 				</span>
@@ -54,8 +56,12 @@
 					<Avatar id={p.id} name={p.displayName} hasAvatar={p.hasAvatar} size={22} />
 					<span class="min-w-0 flex-1 break-words">{p.displayName}</span>
 					{#if p.value !== undefined}
-						<span class="font-mono font-bold {p.value > 0 ? 'text-accent' : 'text-sunset'}"
-							>{p.value > 0 ? '▲' : '▼'}</span
+						<span class="font-mono font-bold {p.value > 0 ? 'text-up' : 'text-down'}"
+							>{#if p.value > 0}<Icon name="check" size={14} stroke={3} />{:else}<Icon
+									name="close"
+									size={14}
+									stroke={3}
+								/>{/if}</span
 						>
 					{/if}
 				</li>

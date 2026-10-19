@@ -25,7 +25,7 @@
 		class="card mt-4 flex items-center justify-between gap-3 border-accent/50 p-4 transition hover:border-accent"
 	>
 		<span class="neon-script neon-script-sm min-w-0 flex-1 text-4xl">{data.open.title}</span>
-		<span class="neon-caps shrink-0 !m-0 text-base">
+		<span class="neon-caps !m-0 shrink-0 text-base">
 			{data.open.status === 'nominating' ? 'Nominating' : 'Voting'}
 		</span>
 		<Icon name="arrow" class="text-accent" />
@@ -50,7 +50,7 @@
 						</div>
 					{/if}
 					<div class="min-w-0 self-center">
-						<p class="neon-script neon-script-sm truncate text-3xl">{night.title}</p>
+						<p class="neon-script neon-script-sm -m-3 truncate p-3 text-3xl">{night.title}</p>
 						{#if when}<p class="text-xs text-muted"><LocalTime date={when} style="date" /></p>{/if}
 						<p class="mt-1 truncate text-sm">
 							{#if night.winner}

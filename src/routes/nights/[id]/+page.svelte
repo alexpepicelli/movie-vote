@@ -34,9 +34,13 @@
 	const finished = $derived(night.status === 'closed' || night.status === 'watched');
 
 	const statusLabel = $derived(
-		{ draft: 'Draft', nominating: 'Nominating', voting: 'Voting', closed: 'Results', watched: 'Watched' }[
-			night.status
-		]
+		{
+			draft: 'Draft',
+			nominating: 'Nominating',
+			voting: 'Voting',
+			closed: 'Results',
+			watched: 'Watched'
+		}[night.status]
 	);
 
 	const nominationsLeft = $derived(night.maxNominations - data.myNominationCount);
@@ -151,22 +155,27 @@
 				<NightTitle title={night.title} label={statusLabel} />
 			</div>
 			<p class="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-sm text-muted">
-				{#if night.scheduledFor}<span class="text-ink"><LocalTime date={night.scheduledFor} /></span>{/if}
-						{#if deadline}
-							<span class="text-live [text-shadow:0_0_10px_rgba(69,227,255,0.5)]"
-								>closes in <Countdown to={deadline} format="clock" /></span
-							>
-						{/if}
-						{#if night.status === 'voting'}
-							<span>{data.voterCount}/{data.memberCount} voted</span>
-						{/if}
-					</p>
+				{#if night.scheduledFor}<span class="text-ink"><LocalTime date={night.scheduledFor} /></span
+					>{/if}
+				{#if deadline}
+					<span class="text-live [text-shadow:0_0_10px_rgba(69,227,255,0.5)]"
+						>closes in <Countdown to={deadline} format="clock" /></span
+					>
+				{/if}
+				{#if night.status === 'voting'}
+					<span>{data.voterCount}/{data.memberCount} voted</span>
+				{/if}
+			</p>
 		</div>
 	</header>
 
+	<div class="order-1 lg:hidden">
+		<WhosIn compact people={data.people} nightId={night.id} canJoin={night.status !== 'watched'} />
+	</div>
+
 	<!-- ───────────── Side panel: sticky on desktop, under the header on mobile ───────────── -->
 	<aside
-		class="flex animate-rise flex-col gap-4 [animation-delay:60ms] lg:sticky lg:top-6 lg:col-start-2 lg:row-span-2 lg:row-start-1"
+		class="animate-rise [animation-delay:60ms] max-lg:contents lg:sticky lg:top-6 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:flex lg:flex-col lg:gap-4"
 	>
 		{#if open}
 			<div class="card hidden items-center justify-between gap-3 p-4 lg:flex">
@@ -174,18 +183,18 @@
 					<span class="text-sm"><strong>{votesLeft}</strong> votes left</span>
 					{@render dots(data.myVoteCount, night.maxVotes)}
 				{:else}
-					<span class="text-sm"
-						><strong>{nominationsLeft}</strong> picks left</span
-					>
+					<span class="text-sm"><strong>{nominationsLeft}</strong> picks left</span>
 					{@render dots(data.myNominationCount, night.maxNominations)}
 				{/if}
 			</div>
 		{/if}
 
-		<WhosIn people={data.people} nightId={night.id} canJoin={night.status !== 'watched'} />
+		<div class="max-lg:hidden">
+			<WhosIn people={data.people} nightId={night.id} canJoin={night.status !== 'watched'} />
+		</div>
 
 		{#if isOwner && night.status !== 'watched'}
-			<div class="card flex flex-col gap-3 border-dashed p-4">
+			<div class="card flex flex-col gap-3 border-dashed p-4 max-lg:order-3">
 				{#if night.status === 'nominating'}
 					<form
 						method="POST"
@@ -234,7 +243,7 @@
 	</aside>
 
 	<!-- ───────────── Phase content ───────────── -->
-	<div class="flex min-w-0 flex-col gap-8 lg:col-start-1">
+	<div class="order-2 flex min-w-0 flex-col gap-8 lg:order-none lg:col-start-1">
 		{#if form?.error}
 			<p class="rounded-xl border border-danger/40 bg-danger/10 p-3 text-sm" role="alert">
 				{form.error}
@@ -243,7 +252,7 @@
 
 		{#if night.status === 'nominating'}
 			<!-- Nominating -->
-			<section>
+			<section class="order-2">
 				<SectionHeader title="Nominated">
 					<span class="font-mono text-muted">{data.entries.length}</span>
 				</SectionHeader>
@@ -286,10 +295,16 @@
 			</section>
 
 			{#if data.picker}
-				<section class="card p-4 sm:p-6">
-					<h2 class="font-display text-2xl">
-						{nominationsLeft > 0 ? 'Nominate' : 'You’re all set'}
-					</h2>
+				<section class="sm:card sm:p-6 {nominationsLeft > 0 ? 'order-1' : 'order-3'}">
+					<div class="flex items-center justify-between gap-3">
+						<h2 class="font-display text-2xl">
+							{nominationsLeft > 0 ? 'Nominate' : 'You’re all set'}
+						</h2>
+						<span class="flex items-center gap-2 text-sm text-muted">
+							<span><strong class="text-ink">{nominationsLeft}</strong> left</span>
+							{@render dots(data.myNominationCount, night.maxNominations)}
+						</span>
+					</div>
 					{#if nominationsLeft > 0}
 						{#snippet pickGrid(items: PickItem[])}
 							<ul class="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">
@@ -385,7 +400,11 @@
 			<section class="flex flex-col gap-4">
 				<SectionHeader title="Vote" />
 				<p class="-mt-2 text-sm text-muted">
-					▲ want it, ▼ don't. {night.secretBallot ? 'Secret ballot.' : 'Votes are public.'}
+					<Icon name="check" size={16} class="inline text-up" /> want it, <Icon
+						name="close"
+						size={16}
+						class="inline text-down"
+					/> don't. {night.secretBallot ? 'Secret ballot.' : 'Votes are public.'}
 				</p>
 				<SegmentedControl
 					label="Show"
@@ -410,9 +429,9 @@
 							<li
 								class="flex animate-rise gap-3 rounded-2xl p-3 transition sm:gap-4 sm:p-4 {entry.myVote ===
 								1
-									? 'bg-raised ring-[1.5px] ring-accent'
+									? 'bg-raised ring-[1.5px] ring-up/80'
 									: entry.myVote === -1
-										? 'bg-raised ring-[1.5px] ring-sunset/70'
+										? 'bg-raised ring-[1.5px] ring-down/80'
 										: 'bg-panel ring-1 ring-line'}"
 								style="animation-delay: {i * 40}ms"
 							>
@@ -439,8 +458,12 @@
 										</span>
 										{#if entry.votes !== null && (entry.votes.ups || entry.votes.downs)}
 											<span class="font-mono"
-												><span class="text-accent">▲{entry.votes.ups}</span>
-												<span class="text-sunset">▼{entry.votes.downs}</span></span
+												><span class="inline-flex items-center text-up"
+													><Icon name="check" size={14} stroke={3} />{entry.votes.ups}</span
+												>
+												<span class="inline-flex items-center text-down"
+													><Icon name="close" size={14} stroke={3} />{entry.votes.downs}</span
+												></span
 											>
 										{/if}
 									</div>
@@ -489,9 +512,7 @@
 				>
 					{@render dots(data.myVoteCount, night.maxVotes)}
 					<span class="flex-1 text-sm font-semibold"
-						>{votesLeft === 0
-							? 'All votes used'
-							: `${plural(votesLeft, 'vote')} left`}</span
+						>{votesLeft === 0 ? 'All votes used' : `${plural(votesLeft, 'vote')} left`}</span
 					>
 					<a href={resolve('/')} class="btn min-h-10 w-auto px-5">Done</a>
 				</div>
@@ -680,8 +701,12 @@
 													: 'font-semibold text-ink/85'}">{entry.movie.title}</a
 											>
 											<span class="shrink-0 font-mono text-muted">
-												<span class="text-accent">▲{entry.votes?.ups ?? 0}</span>
-												<span class="text-sunset">▼{entry.votes?.downs ?? 0}</span>
+												<span class="inline-flex items-center text-up"
+													><Icon name="check" size={14} stroke={3} />{entry.votes?.ups ?? 0}</span
+												>
+												<span class="inline-flex items-center text-down"
+													><Icon name="close" size={14} stroke={3} />{entry.votes?.downs ?? 0}</span
+												>
 												<span class="ml-1 font-bold text-ink"
 													>{signed(entry.votes?.score ?? 0)}</span
 												>
